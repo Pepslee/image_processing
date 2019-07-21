@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.python.keras
-from tensorflow.python.keras import Model, Input
+from tensorflow.python.keras import Model, Input, Sequential, layers
 from tensorflow.python.keras.backend import mean
 from tensorflow.python.keras.layers import UpSampling2D, Conv2D, BatchNormalization, Activation, concatenate, Add, Dropout, Lambda, MaxPooling2D
 from tensorflow.python.keras.utils import get_file
@@ -154,9 +154,15 @@ def model_keras(data_shape, label_shape):
     #img_input = Input(input_shape)
     channels = label_shape
     # img_input = Input(input_shape)
-    ret = ResNet50(input_shape=input_shape, include_top=True, weights=None, classes=channels)
-    # ret = InceptionResNetV2(input_shape=input_shape, include_top=True, weights=None, classes=channels)
-    return ret
+    # ret = ResNet50(input_shape=input_shape, include_top=True, weights=None, classes=channels)
+    inception = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+    model = Sequential()
+    model.add(inception)
+    model.add(layers.GlobalAveragePooling2D())
+    model.add(layers.Dropout(0.5))
+    model.add(layers.Dense(channels, activation='sigmoid'))
+
+    return model
 
 
 def optimizer(optimizer_type, start_lr):

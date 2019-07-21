@@ -35,13 +35,13 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
         train_generator = DataGenerator(train_df, image_dir, batch_size)
         test_generator = DataGenerator(test_df, image_dir, 1)
 
-        model = model_keras((256, 256, 3), 5)
+        model = model_keras((299, 299, 3), 5)
         optimizer_type = optimizer('Adam', 0.001)
 
         model.compile(loss=loss, optimizer=optimizer_type, metrics=metrics)
 
         callbacks_params = {'checkpoints_path': ckpts_path,
-                            'start_lr': 0.001,
+                            'start_lr': 0.00005,
                             'test_df': test_df,
                             'image_dir': image_dir}
 
