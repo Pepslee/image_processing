@@ -121,7 +121,8 @@ def callbacks(args):
         os.makedirs(args['checkpoints_path'])
     if not os.path.exists(args['log_path']):
         os.makedirs(args['log_path'])
-    best_model = keras.callbacks.ModelCheckpoint('{}/best_model.h5'.format(args['checkpoints_path']), monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
+    # best_model = keras.callbacks.ModelCheckpoint('{}/best_model.h5'.format(args['checkpoints_path']), monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
+    best_model = ModelCheckpoint(args)
 
     metrics = Metrics(args)
 
