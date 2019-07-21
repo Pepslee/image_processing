@@ -4,7 +4,7 @@ from tensorflow.python.keras import Model, Input, Sequential, layers
 from tensorflow.python.keras.backend import mean
 from tensorflow.python.keras.layers import UpSampling2D, Conv2D, BatchNormalization, Activation, concatenate, Add, Dropout, Lambda, MaxPooling2D
 from tensorflow.python.keras.utils import get_file
-from tensorflow.python.keras.applications import DenseNet169
+from tensorflow.python.keras.applications import DenseNet169, DenseNet121
 from tensorflow.python.keras.applications.inception_resnet_v2 import InceptionResNetV2
 from tensorflow.python.keras.applications.resnet50 import ResNet50
 
@@ -155,7 +155,8 @@ def model_keras(data_shape, label_shape):
     channels = label_shape
     # img_input = Input(input_shape)
     # ret = ResNet50(input_shape=input_shape, include_top=True, weights=None, classes=channels)
-    inception = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+    # inception = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+    inception = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
     model = Sequential()
     model.add(inception)
     model.add(layers.GlobalAveragePooling2D())

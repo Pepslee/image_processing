@@ -49,7 +49,7 @@ class DataGenerator:
                 ind = i % count
                 image_path = join(self.image_dir, self.df['id_code'].iloc[ind])
                 image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-                image = cv2.resize(image, (299, 299))
+                image = cv2.resize(image, (224, 224))
                 if random.randint(0, 1):
                     image = flip_8_side(image)
                 image = (image.astype(np.float32) - 128)/128.0
