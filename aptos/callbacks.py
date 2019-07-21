@@ -26,6 +26,7 @@ from tensorflow.python.keras.losses import categorical_crossentropy
 from dsel.colorize import Qml
 from dsel.rendering import rendering
 from tensorflow.python.keras.utils import to_categorical
+from aptos.data_generator import preproc
 
 
 def IoU(y, x, thresh):
@@ -79,7 +80,7 @@ class ModelCheckpoint(Callback):
         for i, row in self.test_df.iterrows():
             image_path = join(self.image_dir, row['id_code'])
             image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-            image = (image.astype(np.float32)-128)/128.0
+            image = preproc(image)
             image = np.expand_dims(image, axis=0)
             y_pred.append(np.argmax(self.model.predict(image)[0], axis=-1))
             y_true.append(int(row['diagnosis']))

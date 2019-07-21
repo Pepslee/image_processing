@@ -31,6 +31,12 @@ def flip_8_side(data):
     return data
 
 
+def preproc(image):
+    image = cv2.resize(image, (224, 224))
+    image = (image.astype(np.float32) - 128) / 128.0
+    return image
+
+
 class DataGenerator:
     def __init__(self, data_table, image_dir, batch_size):
         self.data_table = data_table
@@ -49,10 +55,9 @@ class DataGenerator:
                 ind = i % count
                 image_path = join(self.image_dir, self.df['id_code'].iloc[ind])
                 image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-                image = cv2.resize(image, (224, 224))
+                image = preproc(image)
                 if random.randint(0, 1):
                     image = flip_8_side(image)
-                image = (image.astype(np.float32) - 128)/128.0
                 diagnosis = self.df['diagnosis'].iloc[ind]
                 diagnosis = to_categorical(diagnosis, 5)
                 x_batch.append(image)
