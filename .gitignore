@@ -3,5 +3,6 @@
 *~
 database/
 .venv/
+venv/
 *.egg-info/
 .eggs/
