@@ -80,7 +80,7 @@ class ModelCheckpoint(Callback):
             image = (image.astype(np.float32)-128)/128.0
             image = np.expand_dims(image, axis=0)
             y_pred.append(np.argmax(self.model.predict(image)[0], axis=-1))
-            y_true.append(row['id_code'])
+            y_true.append(int(row['id_code']))
 
         ck = cohen_kappa_score(y_pred, y_true)
         self.tb_writer.log_scalar(self.log_path, 'kappa', [ck], iteration, 'Train')
