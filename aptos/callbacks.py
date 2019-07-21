@@ -74,7 +74,7 @@ class ModelCheckpoint(Callback):
 
         y_pred = []
         y_true = []
-        for row in self.test_df.iterrows():
+        for i, row in self.test_df.iterrows():
             image_path = join(self.image_dir, row['id_code'])
             image = cv2.imread(image_path, cv2.IMREAD_COLOR)
             image = (image.astype(np.float32)-128)/128.0
