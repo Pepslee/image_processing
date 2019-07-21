@@ -64,6 +64,7 @@ class ModelCheckpoint(Callback):
         self.best = -np.Inf
         self.test_df = args['test_df']
         self.epoch = 0
+        self.image_dir = args['image_dir']
 
     def on_epoch_end(self, epoch, logs=None):
         self.epoch = epoch
