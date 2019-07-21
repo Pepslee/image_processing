@@ -66,6 +66,7 @@ class ModelCheckpoint(Callback):
         self.epoch = 0
         self.image_dir = args['image_dir']
         self.tb_writer = TensorboardWriter()
+        self.log_path = args['log_path']
 
     def on_epoch_end(self, epoch, logs=None):
         self.epoch = epoch
