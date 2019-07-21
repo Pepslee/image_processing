@@ -156,12 +156,12 @@ def model_keras():
     # img_input = Input(input_shape)
     # ret = ResNet50(input_shape=input_shape, include_top=True, weights=None, classes=channels)
     # inception = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-    inception = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+    inception = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet')
     model = Sequential()
     model.add(inception)
     model.add(layers.GlobalAveragePooling2D())
     model.add(layers.Dropout(0.5))
-    model.add(layers.Dense(channels, activation='sigmoid'))
+    model.add(layers.Dense(channels, activation='softmax'))
 
     return model
 
