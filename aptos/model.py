@@ -149,10 +149,10 @@ def model_(data_shape, label_shape, train_params):
     return ret
 
 
-def model_keras(data_shape, label_shape):
-    input_shape = data_shape
+def model_keras():
+    input_shape = (224, 224, 3)
     #img_input = Input(input_shape)
-    channels = label_shape
+    channels = 5
     # img_input = Input(input_shape)
     # ret = ResNet50(input_shape=input_shape, include_top=True, weights=None, classes=channels)
     # inception = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
