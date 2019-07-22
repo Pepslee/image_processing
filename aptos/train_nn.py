@@ -59,7 +59,13 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
         model = model_keras()
         optimizer_type = optimizer('Adam', 0.001)
 
-        model.compile(loss=loss, optimizer=optimizer_type, metrics=metrics)
+        # add names fro metrics to visualize on the tensorboard
+        named_metrics = {}
+        for key, value in metrics:
+            key = key + f'_{k}'
+            named_metrics[key] = value
+
+        model.compile(loss={f'softmax_{k}': loss}, optimizer=optimizer_type, metrics=named_metrics)
         model.summary()
 
         # add test_data and fold number to callbacks params dict
@@ -73,13 +79,15 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
         model.fit_generator(generator=iter(train_generator.generator()),
                             # steps_per_epoch=10,
                             steps_per_epoch=len(train_generator),
-                            epochs=10,
+                            epochs=30,
                             validation_data=iter(test_generator.generator()),
                             validation_steps=len(test_generator),
                             callbacks=callbacks_list,
                             max_queue_size=1,
                             verbose=1,
                             workers=0)
+        del model
+
 
 if __name__ == '__main__':
     args = create_parser()
