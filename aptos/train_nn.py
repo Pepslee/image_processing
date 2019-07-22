@@ -36,7 +36,7 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
                         'start_lr': 0.00005,
                         'image_dir': image_dir}
 
-    callbacks_params['log_path'] = os.path.join(args['checkpoints_path'], 'log')
+    callbacks_params['log_path'] = os.path.join(callbacks_params['checkpoints_path'], 'log')
     if not os.path.exists(callbacks_params['checkpoints_path']):
         os.makedirs(callbacks_params['checkpoints_path'])
     else:
