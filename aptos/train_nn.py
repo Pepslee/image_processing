@@ -28,7 +28,7 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
     data_frame = pd.read_csv(csv_path)
 
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
-    for train_ind, test_ind in skf.split(data_frame, data_frame['diagnosis'], ):
+    for k, (train_ind, test_ind) in enumerate(skf.split(data_frame, data_frame['diagnosis'], )):
         train_df = data_frame.iloc[train_ind]
         test_df = data_frame.iloc[train_ind]
 
@@ -44,7 +44,8 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
         callbacks_params = {'checkpoints_path': ckpts_path,
                             'start_lr': 0.00005,
                             'test_df': test_df,
-                            'image_dir': image_dir}
+                            'image_dir': image_dir,
+                            'fold': k}
 
         callbacks_list = callbacks(callbacks_params)
 

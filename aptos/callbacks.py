@@ -61,7 +61,9 @@ class ModelCheckpoint(Callback):
     """ Save the model after every epoch. """
 
     def __init__(self, args):
-        self.save_path = '{}/best_model.h5'.format(args['checkpoints_path'])
+        ckpts_path = args['checkpoints_path']
+        k = args['fold']
+        self.save_path = f'{ckpts_path}/best_model_{k}.h5'
         self.best = -np.Inf
         self.test_df = args['test_df']
         self.epoch = 0
