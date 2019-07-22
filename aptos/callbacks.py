@@ -2,6 +2,7 @@ import os
 import warnings
 from functools import reduce
 from os.path import join
+import shutil
 
 
 import cv2
@@ -63,6 +64,7 @@ class ModelCheckpoint(Callback):
     def __init__(self, args):
         ckpts_path = args['checkpoints_path']
         k = args['fold']
+        self.k = k
         self.save_path = f'{ckpts_path}/best_model_{k}.h5'
         self.best = -np.Inf
         self.test_df = args['test_df']
@@ -70,6 +72,11 @@ class ModelCheckpoint(Callback):
         self.image_dir = args['image_dir']
         self.tb_writer = TensorboardWriter()
         self.log_path = args['log_path']
+
+    def on_batch_end(self, batch, logs=None):
+        output_dist = logs.get('loss')
+        iteration = K.eval(self.model.optimizer.iterations)
+        self.tb_writer.log_scalar(self.log_path, 'loss_' + str(self.k), [output_dist], iteration, 'Train')
 
     def on_epoch_end(self, epoch, logs=None):
         self.epoch = epoch
@@ -88,7 +95,7 @@ class ModelCheckpoint(Callback):
             y_true.append(int(row['diagnosis']))
 
         ck = cohen_kappa_score(y_pred, y_true)
-        self.tb_writer.log_scalar(self.log_path, 'kappa', [ck], iteration, 'Train')
+        self.tb_writer.log_scalar(self.log_path, 'kappa_' + str(self.k), [ck], iteration, 'Train')
         if ck > self.best:
             print('\nIteration %05d: %s improved from %0.5f to %0.5f, saving model to %s'
                   % (iteration, 'iou', float(self.best), float(ck), self.save_path))
@@ -99,40 +106,25 @@ class ModelCheckpoint(Callback):
                   (iteration, 'iou', float(self.best)))
 
 
-class Metrics(Callback):
-    def __init__(self, args):
-        Callback.__init__(self)
-        self.tb_writer = TensorboardWriter()
-        self.log_path = args['log_path']
-        self.best = -np.Inf
-
-    def on_batch_end(self, batch, logs=None):
-        output_dist = logs.get('loss')
-        iteration = K.eval(self.model.optimizer.iterations)
-        self.tb_writer.log_scalar(self.log_path, 'loss', [output_dist], iteration, 'Train')
-
-        #input, input_mask = next(self.validation_data)
-        #val_pred = np.asarray(self.model.predict(input))
-        #y_pred = np.argmax(val_pred, axis=-1)+1
-        #y_true = np.argmax(input_mask, axis=-1)+1
-        #iou = IoU(y_pred, y_true, 0)
-        #self.tb_writer.log_scalar(self.log_path, 'kappa', [iou], iteration, 'Train')
-
-
 def callbacks(args):
     # best_model = ModelCheckpoint(args)
 
     args['log_path'] = os.path.join(args['checkpoints_path'], 'log')
     if not os.path.exists(args['checkpoints_path']):
         os.makedirs(args['checkpoints_path'])
+    else:
+        shutil.rmtree(args['checkpoints_path'])
+        os.makedirs(args['checkpoints_path'])
     if not os.path.exists(args['log_path']):
+        os.makedirs(args['log_path'])
+    else:
+        shutil.rmtree(args['log_path'], )
         os.makedirs(args['log_path'])
     # best_model = keras.callbacks.ModelCheckpoint('{}/best_model.h5'.format(args['checkpoints_path']), monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
     best_model = ModelCheckpoint(args)
 
-    metrics = Metrics(args)
 
     lr_callback = keras.callbacks.ReduceLROnPlateau(mode='min', min_delta=0.0001, cooldown=0, min_lr=args['start_lr'],
                                                     patience=3)
     tb = keras.callbacks.TensorBoard(log_dir=args['log_path'])
-    return [best_model, metrics, lr_callback, tb]
+    return [best_model, lr_callback, tb]

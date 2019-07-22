@@ -1,10 +1,10 @@
 import tensorflow as tf
 import tensorflow.python.keras
-from tensorflow.python.keras import Model, Input, Sequential, layers
+from tensorflow.python.keras import Model, Input, Sequential, layers, regularizers
 from tensorflow.python.keras.backend import mean
 from tensorflow.python.keras.layers import UpSampling2D, Conv2D, BatchNormalization, Activation, concatenate, Add, Dropout, Lambda, MaxPooling2D
 from tensorflow.python.keras.utils import get_file
-from tensorflow.python.keras.applications import DenseNet169, DenseNet121
+from tensorflow.python.keras.applications import DenseNet169, DenseNet121, DenseNet201
 from tensorflow.python.keras.applications.inception_resnet_v2 import InceptionResNetV2
 from tensorflow.python.keras.applications.resnet50 import ResNet50
 
@@ -18,9 +18,10 @@ import cv2
 import numpy as np
 from tensorflow.python.keras.applications import imagenet_utils
 from tensorflow.python.keras.preprocessing.image import Iterator
+from tensorflow.python.keras import backend as K
 
-# regularizer = tf.keras.regularizers.l2(0.01)
-regularizer = None
+regularizer = tf.keras.regularizers.l2(0.01)
+# regularizer = None
 
 def conv_bn_relu(input, num_channel, kernel_size, stride, name, padding='same', bn_axis=-1, bn_momentum=0.99,
                  bn_scale=True, use_bias=True):
@@ -150,18 +151,22 @@ def model_(data_shape, label_shape, train_params):
 
 
 def model_keras():
-    input_shape = (224, 224, 3)
+    input_shape = (512, 512, 3)
     #img_input = Input(input_shape)
     channels = 5
     # img_input = Input(input_shape)
-    # ret = ResNet50(input_shape=input_shape, include_top=True, weights=None, classes=channels)
-    # inception = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-    inception = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet')
+    # ret = ResNet50(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+    # ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+    ret = DenseNet201(input_shape=input_shape, include_top=False, weights='imagenet')
+    for layer in ret.layers:
+        if hasattr(layer, 'kernel_regularizer'):
+            layer.kernel_regularizer = regularizer
+
     model = Sequential()
-    model.add(inception)
+    model.add(ret)
     model.add(layers.GlobalAveragePooling2D())
     model.add(layers.Dropout(0.5))
-    model.add(layers.Dense(channels, activation='softmax'))
+    model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer))
 
     return model
 
