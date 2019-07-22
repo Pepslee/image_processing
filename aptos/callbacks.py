@@ -109,20 +109,8 @@ class ModelCheckpoint(Callback):
 def callbacks(args):
     # best_model = ModelCheckpoint(args)
 
-    args['log_path'] = os.path.join(args['checkpoints_path'], 'log')
-    if not os.path.exists(args['checkpoints_path']):
-        os.makedirs(args['checkpoints_path'])
-    else:
-        shutil.rmtree(args['checkpoints_path'])
-        os.makedirs(args['checkpoints_path'])
-    if not os.path.exists(args['log_path']):
-        os.makedirs(args['log_path'])
-    else:
-        shutil.rmtree(args['log_path'], )
-        os.makedirs(args['log_path'])
     # best_model = keras.callbacks.ModelCheckpoint('{}/best_model.h5'.format(args['checkpoints_path']), monitor='val_loss', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
     best_model = ModelCheckpoint(args)
-
 
     lr_callback = keras.callbacks.ReduceLROnPlateau(mode='min', min_delta=0.0001, cooldown=0, min_lr=args['start_lr'],
                                                     patience=3)

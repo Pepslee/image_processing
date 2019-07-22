@@ -1,5 +1,6 @@
 import argparse
 import os
+import shutil
 
 import cv2
 import numpy as np
@@ -25,7 +26,27 @@ def create_parser():
 
 
 def main(csv_path, image_dir, ckpts_path, batch_size):
+    csv_path = os.path.abspath(csv_path)
+    image_dir = os.path.abspath(image_dir)
+    ckpts_path = os.path.abspath(ckpts_path)
+
     data_frame = pd.read_csv(csv_path)
+
+    callbacks_params = {'checkpoints_path': ckpts_path,
+                        'start_lr': 0.00005,
+                        'image_dir': image_dir}
+
+    callbacks_params['log_path'] = os.path.join(args['checkpoints_path'], 'log')
+    if not os.path.exists(callbacks_params['checkpoints_path']):
+        os.makedirs(callbacks_params['checkpoints_path'])
+    else:
+        shutil.rmtree(callbacks_params['checkpoints_path'])
+        os.makedirs(callbacks_params['checkpoints_path'])
+    if not os.path.exists(callbacks_params['log_path']):
+        os.makedirs(callbacks_params['log_path'])
+    else:
+        shutil.rmtree(callbacks_params['log_path'])
+        os.makedirs(callbacks_params['log_path'])
 
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
     for k, (train_ind, test_ind) in enumerate(skf.split(data_frame, data_frame['diagnosis'], )):
@@ -41,11 +62,9 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
         model.compile(loss=loss, optimizer=optimizer_type, metrics=metrics)
         model.summary()
 
-        callbacks_params = {'checkpoints_path': ckpts_path,
-                            'start_lr': 0.00005,
-                            'test_df': test_df,
-                            'image_dir': image_dir,
-                            'fold': k}
+        # add test_data and fold number to callbacks params dict
+        callbacks_params['test_df'] = test_df
+        callbacks_params['fold'] = k
 
         callbacks_list = callbacks(callbacks_params)
 
@@ -61,7 +80,6 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
                             max_queue_size=1,
                             verbose=1,
                             workers=0)
-
 
 if __name__ == '__main__':
     args = create_parser()
