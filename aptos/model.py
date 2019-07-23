@@ -75,7 +75,6 @@ def decoder_block_no_bn(input, filters, skip, block_name, activation='relu'):
     return x
 
 
-
 def create_pyramid_features(C1, C2, C3, C4, C5, feature_size=256):
     P5 = Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='P5', kernel_initializer="he_normal", kernel_regularizer=regularizer)(C5)
     P5_upsampled = UpSampling2D(name='P5_upsampled')(P5)
@@ -151,13 +150,13 @@ def model_(data_shape, label_shape, train_params):
 
 
 def model_keras():
-    input_shape = (512, 512, 3)
+    input_shape = (299, 299, 3)
     #img_input = Input(input_shape)
     channels = 5
     # img_input = Input(input_shape)
     # ret = ResNet50(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-    # ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-    ret = DenseNet201(input_shape=input_shape, include_top=False, weights='imagenet')
+    ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+    # ret = DenseNet201(input_shape=input_shape, include_top=False, weights='imagenet')
     for layer in ret.layers:
         if hasattr(layer, 'kernel_regularizer'):
             layer.kernel_regularizer = regularizer

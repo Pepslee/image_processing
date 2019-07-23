@@ -74,13 +74,24 @@ class ModelCheckpoint(Callback):
         self.log_path = args['log_path']
 
     def on_batch_end(self, batch, logs=None):
-        output_dist = logs.get('loss')
+        loss = logs.get('loss')
         iteration = K.eval(self.model.optimizer.iterations)
-        self.tb_writer.log_scalar(self.log_path, 'loss_' + str(self.k), [output_dist], iteration, 'Train')
+        self.tb_writer.log_scalar(self.log_path, 'loss', [loss], iteration, str(self.k))
 
     def on_epoch_end(self, epoch, logs=None):
         self.epoch = epoch
         self.save_by_metric(epoch)
+        loss = logs.get('loss')
+        val_loss = logs.get('val_loss')
+        self.tb_writer.log_scalar(self.log_path, 'train_loss', [loss], self.epoch, str(self.k) + '_loss')
+        if val_loss is not None:
+            self.tb_writer.log_scalar(self.log_path, 'val_loss', [val_loss], self.epoch, str(self.k) + '_loss')
+
+        accuracy = logs.get('accuracy')
+        val_accuracy = logs.get('val_accuracy')
+        self.tb_writer.log_scalar(self.log_path, 'train_accuracy', [accuracy], self.epoch, str(self.k) + '_accuracy')
+        if val_accuracy is not None:
+            self.tb_writer.log_scalar(self.log_path, 'val_accuracy', [val_accuracy], self.epoch, str(self.k) + '_accuracy')
 
     def save_by_metric(self, iteration):
 
@@ -95,7 +106,7 @@ class ModelCheckpoint(Callback):
             y_true.append(int(row['diagnosis']))
 
         ck = cohen_kappa_score(y_pred, y_true)
-        self.tb_writer.log_scalar(self.log_path, 'kappa_' + str(self.k), [ck], iteration, 'Train')
+        self.tb_writer.log_scalar(self.log_path, 'kappa', [ck], iteration, str(self.k))
         if ck > self.best:
             print('\nIteration %05d: %s improved from %0.5f to %0.5f, saving model to %s'
                   % (iteration, 'iou', float(self.best), float(ck), self.save_path))
@@ -114,5 +125,5 @@ def callbacks(args):
 
     lr_callback = keras.callbacks.ReduceLROnPlateau(mode='min', min_delta=0.0001, cooldown=0, min_lr=args['start_lr'],
                                                     patience=3)
-    tb = keras.callbacks.TensorBoard(log_dir=args['log_path'])
-    return [best_model, lr_callback, tb]
+    # tb = keras.callbacks.TensorBoard(log_dir=args['log_path'])
+    return [best_model, lr_callback]

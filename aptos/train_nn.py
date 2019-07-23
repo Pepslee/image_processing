@@ -6,8 +6,10 @@ import cv2
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold
+from tensorflow.python.framework.ops import reset_default_graph
 from tensorflow.python.keras.models import load_model
 from tensorflow.python.keras import backend as K
+import tensorflow as tf
 
 from aptos.data_generator import DataGenerator
 from aptos.model import model_keras, optimizer
@@ -51,43 +53,40 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
 
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
     for k, (train_ind, test_ind) in enumerate(skf.split(data_frame, data_frame['diagnosis'], )):
-        # add names fro metrics to visualize on the tensorboard
-        named_metrics = {}
-        for key, value in metrics.items():
-            key = key + f'_{k}'
-            named_metrics[key] = value
-        train_df = data_frame.iloc[train_ind]
-        test_df = data_frame.iloc[train_ind]
+        g = tf.Graph()
+        with g.as_default():
+            train_df = data_frame.iloc[train_ind]
+            test_df = data_frame.iloc[train_ind]
 
-        train_generator = DataGenerator(train_df, image_dir, batch_size)
-        test_generator = DataGenerator(test_df, image_dir, 1)
+            train_generator = DataGenerator(train_df, image_dir, batch_size)
+            test_generator = DataGenerator(test_df, image_dir, 1)
 
-        model = model_keras()
-        optimizer_type = optimizer('Adam', 0.001)
+            model = model_keras()
+            optimizer_type = optimizer('Adam', 0.001)
 
-        model.compile(loss={f'softmax_{k}': loss}, optimizer=optimizer_type, metrics=named_metrics)
-        model.summary()
+            model.compile(loss=loss, optimizer=optimizer_type, metrics=metrics)
+            model.summary()
 
-        # add test_data and fold number to callbacks params dict
-        callbacks_params['test_df'] = test_df
-        callbacks_params['fold'] = k
+            # add test_data and fold number to callbacks params dict
+            callbacks_params['test_df'] = test_df
+            callbacks_params['fold'] = k
 
-        callbacks_list = callbacks(callbacks_params)
+            callbacks_list = callbacks(callbacks_params)
 
-        print('Start ...')
+            print('Start ...')
 
-        model.fit_generator(generator=iter(train_generator.generator()),
-                            # steps_per_epoch=10,
-                            steps_per_epoch=len(train_generator),
-                            epochs=30,
-                            validation_data=iter(test_generator.generator()),
-                            validation_steps=len(test_generator),
-                            callbacks=callbacks_list,
-                            max_queue_size=1,
-                            verbose=1,
-                            workers=0)
-        K.clear_session()
-        del model
+            model.fit_generator(generator=iter(train_generator.generator()),
+                                # steps_per_epoch=10,
+                                steps_per_epoch=len(train_generator),
+                                epochs=1,
+                                validation_data=iter(test_generator.generator()),
+                                validation_steps=len(test_generator),
+                                # validation_steps=10,
+                                callbacks=callbacks_list,
+                                max_queue_size=1,
+                                verbose=1,
+                                workers=0)
+            del g
 
 
 if __name__ == '__main__':

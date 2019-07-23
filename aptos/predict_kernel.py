@@ -1,23 +1,14 @@
 import argparse
 import os
-import shutil
 
 import cv2
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import StratifiedKFold
 from tensorflow.python.keras.models import load_model
 from tqdm import tqdm
 
-from aptos.data_generator import DataGenerator
-from aptos.model import model_keras, optimizer
-from aptos.loss import loss
-from aptos.metrics import metrics
-from aptos.callbacks import callbacks
-
 
 def pad_or_crop_image(image, size):
-
     h = image.shape[0]
     if h > size:
         dif = (h - size)
@@ -77,26 +68,15 @@ def crop_by_mask(image):
     return thresh_image
 
 
-def create_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('csv_path', type=str, help='Path to csv file.')
-    parser.add_argument('image_dir', type=str, help='Path to image directory.')
-    parser.add_argument('ckpts_path', type=str, help='Path to output ckpts.')
-    parser.add_argument('-bs', '--batch_size', type=int, required=False, default=5, help='Batch size')
-
-    return parser.parse_args()
-
-
-def main(csv_path, image_dir, ckpts_path, batch_size):
-    csv_path = os.path.abspath(csv_path)
-    image_dir = os.path.abspath(image_dir)
-    ckpts_path = os.path.abspath(ckpts_path)
-
+def main(csv_path, image_dir, ckpts_path):
+    print('start')
+    print(ckpts_path)
     model = load_model(ckpts_path, compile=False)
 
     data_frame = pd.read_csv(csv_path)
     diagnosis = []
     batch = []
+
     for i, row in tqdm(data_frame.iterrows()):
         image_path = os.path.join(image_dir, row['id_code'] + '.png')
         image = cv2.imread(image_path)
@@ -117,9 +97,9 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
         diagnosis.append(np.argmax(pred, axis=-1)[0])
         pass
     data_frame['diagnosis'] = diagnosis
-    data_frame.to_csv('/mnt/75b9aae6-291e-4314-90c2-b27cf3e3f5cd/Kaggle/aptos2019-blindness-detection/best_model_0_test.csv', index=False)
+    data_frame.to_csv('submission_2.csv', index=False)
 
 
 if __name__ == '__main__':
-    args = create_parser()
-    main(args.csv_path, args.image_dir, args.ckpts_path, args.batch_size)
+    main('../input/aptos2019-blindness-detection/test_csv', '../input/aptos2019-blindness-detection/test_images',
+         '../input/model_0/best_model_0.h5')
