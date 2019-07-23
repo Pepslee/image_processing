@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 from tensorflow.python.keras.models import load_model
+from tensorflow.python.keras import backend as K
 
 from aptos.data_generator import DataGenerator
 from aptos.model import model_keras, optimizer
@@ -50,6 +51,11 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
 
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
     for k, (train_ind, test_ind) in enumerate(skf.split(data_frame, data_frame['diagnosis'], )):
+        # add names fro metrics to visualize on the tensorboard
+        named_metrics = {}
+        for key, value in metrics.items():
+            key = key + f'_{k}'
+            named_metrics[key] = value
         train_df = data_frame.iloc[train_ind]
         test_df = data_frame.iloc[train_ind]
 
@@ -58,12 +64,6 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
 
         model = model_keras()
         optimizer_type = optimizer('Adam', 0.001)
-
-        # add names fro metrics to visualize on the tensorboard
-        named_metrics = {}
-        for key, value in metrics:
-            key = key + f'_{k}'
-            named_metrics[key] = value
 
         model.compile(loss={f'softmax_{k}': loss}, optimizer=optimizer_type, metrics=named_metrics)
         model.summary()
@@ -86,6 +86,7 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
                             max_queue_size=1,
                             verbose=1,
                             workers=0)
+        K.clear_session()
         del model
 
 
