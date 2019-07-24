@@ -83,13 +83,15 @@ class ModelCheckpoint(Callback):
         self.save_by_metric(epoch)
         loss = logs.get('loss')
         val_loss = logs.get('val_loss')
-        self.tb_writer.log_scalar(self.log_path, 'train_loss', [loss], self.epoch, str(self.k) + '_loss')
+        if loss is not None:
+            self.tb_writer.log_scalar(self.log_path, 'train_loss', [loss], self.epoch, str(self.k) + '_loss')
         if val_loss is not None:
             self.tb_writer.log_scalar(self.log_path, 'val_loss', [val_loss], self.epoch, str(self.k) + '_loss')
 
         accuracy = logs.get('accuracy')
         val_accuracy = logs.get('val_accuracy')
-        self.tb_writer.log_scalar(self.log_path, 'train_accuracy', [accuracy], self.epoch, str(self.k) + '_accuracy')
+        if accuracy is not None:
+            self.tb_writer.log_scalar(self.log_path, 'train_accuracy', [accuracy], self.epoch, str(self.k) + '_accuracy')
         if val_accuracy is not None:
             self.tb_writer.log_scalar(self.log_path, 'val_accuracy', [val_accuracy], self.epoch, str(self.k) + '_accuracy')
 

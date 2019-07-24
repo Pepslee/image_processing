@@ -55,22 +55,24 @@ class TensorboardWriter:
 
     def log_scalar(self, log_dir, tag, values, iteration, phase_name):
         """Log a scalar to tensorboard."""
+
         with context.eager_mode():
             with summary_ops_v2.always_record_summaries():
                 values = np.array(values)
                 for i, value in enumerate(values):
-                    save_dir = os.path.join(log_dir, phase_name if values.shape[0] == 1 else str(i), tag)
-                    # summary = tf.Summary(value=[
-                    #     tf.Summary.Value(tag='%s%s' % ('' if values.shape[0] == 1 else phase_name.lower() + '_', tag),
-                    #                      simple_value=value)])
+                    if value is not None:
+                        save_dir = os.path.join(log_dir, phase_name if values.shape[0] == 1 else str(i), tag)
+                        # summary = tf.Summary(value=[
+                        #     tf.Summary.Value(tag='%s%s' % ('' if values.shape[0] == 1 else phase_name.lower() + '_', tag),
+                        #                      simple_value=value)])
 
-                    if save_dir in self.writers:
-                        writer = self.writers[save_dir]
-                    else:
-                        writer = create_file_writer_v2(save_dir)
-                        self.writers[save_dir] = writer
-                    with writer.as_default():
-                        summary_ops_v2.scalar(name='%s%s' % ('' if values.shape[0] == 1 else phase_name.lower() + '_', tag), tensor=value, step=iteration)
+                        if save_dir in self.writers:
+                            writer = self.writers[save_dir]
+                        else:
+                            writer = create_file_writer_v2(save_dir)
+                            self.writers[save_dir] = writer
+                        with writer.as_default():
+                            summary_ops_v2.scalar(name='%s%s' % ('' if values.shape[0] == 1 else phase_name.lower() + '_', tag), tensor=value, step=iteration)
 
     def log_graph(self, log_dir, graph):
         writer = tf.summary.create_file_writer(logdir=log_dir, graph=graph)
