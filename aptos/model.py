@@ -167,6 +167,8 @@ def model_keras(k):
         model.add(ret)
         model.add(layers.GlobalAveragePooling2D())
         model.add(layers.Dropout(0.5))
+        model.add(layers.Dense(1024, activation='relu', kernel_regularizer=regularizer))
+        model.add(layers.Dropout(0.5))
         model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer))
 
     return model
