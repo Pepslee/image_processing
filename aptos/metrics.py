@@ -326,4 +326,4 @@ def cappa_coen_my(y_true, y_pred):
     return cappa
 
 
-metrics = [accuracy]
+metrics = None

@@ -6,7 +6,7 @@ from tensorflow.python.keras.layers import UpSampling2D, Conv2D, BatchNormalizat
 from tensorflow.python.keras.utils import get_file
 from tensorflow.python.keras.applications import DenseNet169, DenseNet121, DenseNet201, VGG16
 from tensorflow.python.keras.applications.inception_resnet_v2 import InceptionResNetV2
-from tensorflow.python.keras.applications.resnet50 import ResNet50
+from tensorflow.python.keras.applications import ResNet50
 
 import os
 import random
@@ -149,24 +149,25 @@ def model_(data_shape, label_shape, train_params):
     return ret
 
 
-def model_keras():
-    input_shape = (299, 299, 3)
-    #img_input = Input(input_shape)
-    channels = 5
-    # img_input = Input(input_shape)
-    # ret = ResNet50(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-    # ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-    ret = VGG16(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-    # ret = DenseNet201(input_shape=input_shape, include_top=False, weights='imagenet')
-    for layer in ret.layers:
-        if hasattr(layer, 'kernel_regularizer'):
-            layer.kernel_regularizer = regularizer
+def model_keras(k):
+    with tf.name_scope(str(k)):
+        input_shape = (224, 224, 3)
+        #img_input = Input(input_shape)
+        channels = 5
+        # img_input = Input(input_shape)
+        # ret = ResNet50(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+        # ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+        ret = VGG16(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+        # ret = DenseNet201(input_shape=input_shape, include_top=False, weights='imagenet')
+        for layer in ret.layers:
+            if hasattr(layer, 'kernel_regularizer'):
+                layer.kernel_regularizer = regularizer
 
-    model = Sequential()
-    model.add(ret)
-    model.add(layers.GlobalAveragePooling2D())
-    model.add(layers.Dropout(0.5))
-    model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer))
+        model = Sequential()
+        model.add(ret)
+        model.add(layers.GlobalAveragePooling2D())
+        model.add(layers.Dropout(0.5))
+        model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer))
 
     return model
 
