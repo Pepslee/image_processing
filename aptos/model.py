@@ -4,7 +4,7 @@ from tensorflow.python.keras import Model, Input, Sequential, layers, regularize
 from tensorflow.python.keras.backend import mean
 from tensorflow.python.keras.layers import UpSampling2D, Conv2D, BatchNormalization, Activation, concatenate, Add, Dropout, Lambda, MaxPooling2D
 from tensorflow.python.keras.utils import get_file
-from tensorflow.python.keras.applications import DenseNet169, DenseNet121, DenseNet201
+from tensorflow.python.keras.applications import DenseNet169, DenseNet121, DenseNet201, VGG16
 from tensorflow.python.keras.applications.inception_resnet_v2 import InceptionResNetV2
 from tensorflow.python.keras.applications.resnet50 import ResNet50
 
@@ -156,6 +156,7 @@ def model_keras():
     # img_input = Input(input_shape)
     # ret = ResNet50(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
     ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+    # ret = VGG16(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
     # ret = DenseNet201(input_shape=input_shape, include_top=False, weights='imagenet')
     for layer in ret.layers:
         if hasattr(layer, 'kernel_regularizer'):

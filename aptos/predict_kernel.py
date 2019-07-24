@@ -96,10 +96,15 @@ def main(csv_path, image_dir, ckpts_path):
         pred = model.predict(image)
         diagnosis.append(np.argmax(pred, axis=-1)[0])
         pass
-    data_frame['diagnosis'] = diagnosis
-    data_frame.to_csv('submission_2.csv', index=False)
+    data_frame['diagnosis'] = np.array(diagnosis, dtype=int)
+    print('saving')
+    # example_frame = pd.read_csv('../input/aptos2019-blindness-detection/sample_submission.csv')
+    # example_frame.diagnosis = diagnosis
+    data_frame.head()
+    data_frame.to_csv('submission.csv', index=False)
+    print('saved')
 
 
 if __name__ == '__main__':
-    main('../input/aptos2019-blindness-detection/test_csv', '../input/aptos2019-blindness-detection/test_images',
-         '../input/model_0/best_model_0.h5')
+    main('../input/aptos2019-blindness-detection/test.csv', '../input/aptos2019-blindness-detection/test_images',
+         '../input/model-0/best_model_0.h5')

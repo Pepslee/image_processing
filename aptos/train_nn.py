@@ -86,7 +86,6 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
                                 max_queue_size=1,
                                 verbose=1,
                                 workers=0)
-            del g
 
 
 if __name__ == '__main__':
