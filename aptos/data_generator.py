@@ -38,8 +38,13 @@ def preproc(image):
     image = (image.astype(np.float32) - 128) / 128.0
     return image
 
+
+def sometimes(aug):
+    return iaa.Sometimes(0.5, aug)
+
+
 def augment():
-    sometimes = lambda aug: iaa.Sometimes(0.5, aug)
+    # sometimes = lambda aug: iaa.Sometimes(0.5, aug)
     seq = iaa.Sequential(
         [
             # apply the following augmenters to most images
@@ -108,13 +113,15 @@ def augment():
         random_order=True)
     return seq
 
+
 class DataGenerator:
-    def __init__(self, data_table, image_dir, batch_size):
+    def __init__(self, data_table, image_dir, batch_size, phase):
         self.data_table = data_table
         self.df = shuffle(self.data_table)
         self.image_dir = image_dir
         self.batch_size = batch_size
         self.length = self.df.shape[0]
+        self.phase = phase
 
     def generator(self):
         i = 0
@@ -127,7 +134,8 @@ class DataGenerator:
                 ind = i % count
                 image_path = join(self.image_dir, self.df['id_code'].iloc[ind])
                 image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-                image = seq.augment_image(image)
+                if self.phase == 'train':
+                    image = seq.augment_image(image)
                 image = preproc(image)
                 if random.randint(0, 1):
                     image = flip_8_side(image)
