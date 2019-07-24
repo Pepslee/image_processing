@@ -157,8 +157,8 @@ def model_keras(k):
         # img_input = Input(input_shape)
         # ret = ResNet50(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         # ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-        ret = VGG16(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-        # ret = DenseNet201(input_shape=input_shape, include_top=False, weights='imagenet')
+        #ret = VGG16(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+        ret = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet')
         for layer in ret.layers:
             if hasattr(layer, 'kernel_regularizer'):
                 layer.kernel_regularizer = regularizer

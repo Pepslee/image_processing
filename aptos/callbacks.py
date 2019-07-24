@@ -62,10 +62,10 @@ class ModelCheckpoint(Callback):
     """ Save the model after every epoch. """
 
     def __init__(self, args):
-        ckpts_path = args['checkpoints_path']
+        self.ckpts_path = args['checkpoints_path']
         k = args['fold']
         self.k = k
-        self.save_path = f'{ckpts_path}/best_model_{k}.h5'
+
         self.best = -np.Inf
         self.test_df = args['test_df']
         self.epoch = 0
@@ -79,6 +79,7 @@ class ModelCheckpoint(Callback):
         self.tb_writer.log_scalar(self.log_path, 'loss', [loss], iteration, str(self.k))
 
     def on_epoch_end(self, epoch, logs=None):
+        self.save_path = f'{self.ckpts_path}/best_model_{self.k}_e_{epoch}.h5'
         self.epoch = epoch
         self.save_by_metric(epoch)
         loss = logs.get('loss')

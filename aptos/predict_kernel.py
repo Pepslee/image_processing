@@ -50,7 +50,7 @@ def crop_image(img, mask, tol=0):
 
 
 def preproc(image):
-    image = cv2.resize(image, (299, 299))
+    image = cv2.resize(image, (224, 224))
     image = (image.astype(np.float32) - 128) / 128.0
     return image
 
@@ -107,4 +107,4 @@ def main(csv_path, image_dir, ckpts_path):
 
 if __name__ == '__main__':
     main('../input/aptos2019-blindness-detection/test.csv', '../input/aptos2019-blindness-detection/test_images',
-         '../input/model-0/best_model_0.h5')
+         '../input/best-model-0-rn/best_model_0_rn.h5')
