@@ -4,9 +4,26 @@ from tensorflow.python.keras import Model, Input, Sequential, layers, regularize
 from tensorflow.python.keras.backend import mean
 from tensorflow.python.keras.layers import UpSampling2D, Conv2D, BatchNormalization, Activation, concatenate, Add, Dropout, Lambda, MaxPooling2D
 from tensorflow.python.keras.utils import get_file
-from tensorflow.python.keras.applications import DenseNet169, DenseNet121, DenseNet201, VGG16
+from tensorflow.python.keras.applications.densenet import DenseNet121
+from tensorflow.python.keras.applications.densenet import DenseNet169
+from tensorflow.python.keras.applications.densenet import DenseNet201
+from tensorflow.python.keras.applications.imagenet_utils import decode_predictions
+from tensorflow.python.keras.applications.imagenet_utils import preprocess_input
 from tensorflow.python.keras.applications.inception_resnet_v2 import InceptionResNetV2
-from tensorflow.python.keras.applications import ResNet50
+from tensorflow.python.keras.applications.inception_v3 import InceptionV3
+from tensorflow.python.keras.applications.mobilenet import MobileNet
+from tensorflow.python.keras.applications.mobilenet_v2 import MobileNetV2
+from tensorflow.python.keras.applications.nasnet import NASNetLarge
+from tensorflow.python.keras.applications.nasnet import NASNetMobile
+from tensorflow.python.keras.applications.resnet import ResNet50
+from tensorflow.python.keras.applications.resnet import ResNet101
+from tensorflow.python.keras.applications.resnet import ResNet152
+from tensorflow.python.keras.applications.resnet_v2 import ResNet50V2
+from tensorflow.python.keras.applications.resnet_v2 import ResNet101V2
+from tensorflow.python.keras.applications.resnet_v2 import ResNet152V2
+from tensorflow.python.keras.applications.vgg16 import VGG16
+from tensorflow.python.keras.applications.vgg19 import VGG19
+from tensorflow.python.keras.applications.xception import Xception
 
 import os
 import random
