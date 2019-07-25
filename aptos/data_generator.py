@@ -34,8 +34,8 @@ def flip_8_side(data):
 
 
 def preproc(image):
+    image = (image.astype(np.float32) - np.mean(image, axis=(0, 1))) / np.std(image, axis=(0, 1))
     image = cv2.resize(image, (224, 224))
-    image = (image.astype(np.float32) - np.mean(image, axis=(-2, -3))) / np.std(image, axis=(-2, -3))
     return image
 
 
@@ -51,21 +51,18 @@ def augment():
             iaa.Fliplr(0.5),  # horizontally flip 50% of all images
             iaa.Flipud(0.2),  # vertically flip 20% of all images
             sometimes(iaa.Affine(
-                scale={"x": (0.9, 1.1), "y": (0.9, 1.1)},
+                scale=(0.7, 1.3),
                 # scale images to 80-120% of their size, individually per axis
-                translate_percent={"x": (-0.1, 0.1), "y": (-0.1, 0.1)},  # translate by -20 to +20 percent (per axis)
                 rotate=(-10, 10),  # rotate by -45 to +45 degrees
                 shear=(-5, 5),  # shear by -16 to +16 degrees
                 order=[0, 1],  # use nearest neighbour or bilinear interpolation (fast)
-                cval=(0, 255),  # if mode is constant, use a cval between 0 and 255
-                mode=ia.ALL  # use any of scikit-image's warping modes (see 2nd image from the top for examples)
+                cval=(0, 1),  # if mode is constant, use a cval between 0 and 255
+                mode='constant'  # use any of scikit-image's warping modes (see 2nd image from the top for examples)
             )),
             # execute 0 to 5 of the following (less important) augmenters per image
             # don't execute all of them, as that would often be way too strong
             iaa.SomeOf((0, 5),
                        [
-                           sometimes(iaa.Superpixels(p_replace=(0, 1.0), n_segments=(20, 200))),
-                           # convert images into their superpixel representation
                            iaa.OneOf([
                                iaa.GaussianBlur((0, 1.0)),  # blur images with a sigma between 0 and 3.0
                                iaa.AverageBlur(k=(3, 5)),
@@ -73,39 +70,18 @@ def augment():
                                iaa.MedianBlur(k=(3, 5)),
                                # blur image using local medians with kernel sizes between 2 and 7
                            ]),
-                           iaa.Sharpen(alpha=(0, 1.0), lightness=(0.9, 1.1)),  # sharpen images
-                           iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0)),  # emboss images
-                           # search either for all edges or for directed edges,
-                           # blend the result with the original image using a blobby mask
                            iaa.SimplexNoiseAlpha(iaa.OneOf([
-                               iaa.EdgeDetect(alpha=(0.5, 1.0)),
-                               iaa.DirectedEdgeDetect(alpha=(0.5, 1.0), direction=(0.0, 1.0)),
+                               iaa.EdgeDetect(alpha=(0.1, 0.2)),
                            ])),
-                           iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.01 * 255), per_channel=0.5),
-                           # add gaussian noise to images
-                           iaa.OneOf([
-                               iaa.Dropout((0.01, 0.05), per_channel=0.5),  # randomly remove up to 10% of the pixels
-                               iaa.CoarseDropout((0.01, 0.03), size_percent=(0.01, 0.02), per_channel=0.2),
-                           ]),
-                           iaa.Invert(0.01, per_channel=True),  # invert color channels
-                           iaa.Add((-2, 2), per_channel=0.5),
+                           iaa.Add((-3, 3), per_channel=0.5),
                            # change brightness of images (by -10 to 10 of original value)
-                           iaa.AddToHueAndSaturation((-1, 1)),  # change hue and saturation
+                           # iaa.AddToHueAndSaturation((-1, 1)),  # change hue and saturation
                            # either change the brightness of the whole image (sometimes
                            # per channel) or change the brightness of subareas
                            iaa.OneOf([
-                               iaa.Multiply((0.9, 1.1), per_channel=0.5),
-                               iaa.FrequencyNoiseAlpha(
-                                   exponent=(-1, 0),
-                                   first=iaa.Multiply((0.9, 1.1), per_channel=True),
-                                   second=iaa.ContrastNormalization((0.9, 1.1))
-                               )
+                               iaa.Multiply((0.9, 1.1), per_channel=0.5)
                            ]),
-                           sometimes(iaa.ElasticTransformation(alpha=(0.5, 3.5), sigma=0.25)),
-                           # move pixels locally around (with random strengths)
-                           sometimes(iaa.PiecewiseAffine(scale=(0.01, 0.05))),
                            # sometimes move parts of the image around
-                           sometimes(iaa.PerspectiveTransform(scale=(0.01, 0.1)))
                        ],
                        random_order=True
                        )
@@ -122,6 +98,7 @@ class DataGenerator:
         self.batch_size = batch_size
         self.length = self.df.shape[0]
         self.phase = phase
+        self.image_mode ='gray'
 
     def generator(self):
         i = 0
@@ -134,11 +111,18 @@ class DataGenerator:
                 ind = i % count
                 image_path = join(self.image_dir, self.df['id_code'].iloc[ind])
                 image = cv2.imread(image_path, cv2.IMREAD_COLOR)
+                if self.image_mode == 'gray':
+                    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+                    gray_image_norm = (gray_image.astype(np.float32) - np.mean(gray_image)) / (
+                                np.std(gray_image) + 0.001)
+                    image = cv2.normalize(gray_image_norm, gray_image_norm, alpha=0, beta=255,
+                                                    norm_type=cv2.NORM_MINMAX).astype(np.uint8)
                 if self.phase == 'train':
                     image = seq.augment_image(image)
                 image = preproc(image)
-                if random.randint(0, 1):
-                    image = flip_8_side(image)
+                # if random.randint(0, 1):
+                #     image = flip_8_side(image)
 
                 diagnosis = self.df['diagnosis'].iloc[ind]
                 diagnosis = to_categorical(diagnosis, 5)
