@@ -51,7 +51,7 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
         shutil.rmtree(callbacks_params['log_path'])
         os.makedirs(callbacks_params['log_path'])
 
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
+    skf = StratifiedKFold(n_splits=4, shuffle=True, random_state=1)
     for k, (train_ind, test_ind) in enumerate(skf.split(data_frame, data_frame['diagnosis'], )):
         g = tf.Graph()
         with g.as_default():
