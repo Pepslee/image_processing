@@ -78,7 +78,7 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
             model.fit_generator(generator=iter(train_generator.generator()),
                                 # steps_per_epoch=10,
                                 steps_per_epoch=len(train_generator),
-                                epochs=30,
+                                epochs=50,
                                 validation_data=iter(test_generator.generator()),
                                 validation_steps=len(test_generator),
                                 # validation_steps=10,
