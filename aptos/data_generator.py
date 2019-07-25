@@ -35,7 +35,7 @@ def flip_8_side(data):
 
 def preproc(image):
     image = cv2.resize(image, (224, 224))
-    image = (image.astype(np.float32) - 128) / 128.0
+    image = (image.astype(np.float32) - np.mean(image, axis=-1)) / np.std(image, axis=-1)
     return image
 
 

@@ -8,7 +8,8 @@ from tensorflow.python.keras.models import load_model
 from tqdm import tqdm
 
 
-def pad_or_crop_image(image, size):
+def pad_or_crop_image(image):
+    size = image.shape[1]
     h = image.shape[0]
     if h > size:
         dif = (h - size)
@@ -49,8 +50,8 @@ def crop_image(img, mask, tol=0):
     return img[np.ix_(mask.any(1), mask.any(0))]
 
 
-def preproc(image):
-    image = cv2.resize(image, (224, 224))
+def preproc(image, SIZE):
+    image = cv2.resize(image, (SIZE, SIZE))
     image = (image.astype(np.float32) - 128) / 128.0
     return image
 
@@ -78,6 +79,7 @@ def main(csv_path, image_dir, ckpts_path):
     batch = []
 
     for i, row in tqdm(data_frame.iterrows()):
+        SIZE = 224
         image_path = os.path.join(image_dir, row['id_code'] + '.png')
         image = cv2.imread(image_path)
 
@@ -85,11 +87,11 @@ def main(csv_path, image_dir, ckpts_path):
 
         y_size, x_size = image.shape[:2]
         k = float(y_size) / x_size
-        image = cv2.resize(image, (512, int(k * 512)))
+        image = cv2.resize(image, (SIZE, int(k * SIZE)))
 
-        image = pad_or_crop_image(image, 512)
+        image = pad_or_crop_image(image)
 
-        image = preproc(image)
+        image = preproc(image, SIZE)
 
         batch.append(image)
         image = np.expand_dims(image, axis=0)
@@ -107,4 +109,4 @@ def main(csv_path, image_dir, ckpts_path):
 
 if __name__ == '__main__':
     main('../input/aptos2019-blindness-detection/test.csv', '../input/aptos2019-blindness-detection/test_images',
-         '../input/best-model-0-rn/best_model_0_rn.h5')
+         '../input/resnet-151v2/best_model_0_e_28_resnet_v2.h5')
