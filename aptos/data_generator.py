@@ -98,7 +98,7 @@ class DataGenerator:
         self.batch_size = batch_size
         self.length = self.df.shape[0]
         self.phase = phase
-        self.image_mode ='gray'
+        self.image_mode ='color'
 
     def generator(self):
         i = 0
@@ -111,7 +111,7 @@ class DataGenerator:
                 ind = i % count
                 image_path = join(self.image_dir, self.df['id_code'].iloc[ind])
                 image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-                if self.image_mode == 'color':
+                if self.image_mode == 'gray':
                     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
                     gray_image_norm = (gray_image.astype(np.float32) - np.mean(gray_image)) / (
