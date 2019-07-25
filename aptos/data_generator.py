@@ -111,7 +111,7 @@ class DataGenerator:
                 ind = i % count
                 image_path = join(self.image_dir, self.df['id_code'].iloc[ind])
                 image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-                if self.image_mode == 'gray':
+                if self.image_mode == 'color':
                     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
                     gray_image_norm = (gray_image.astype(np.float32) - np.mean(gray_image)) / (
@@ -121,6 +121,8 @@ class DataGenerator:
                 if self.phase == 'train':
                     image = seq.augment_image(image)
                 image = preproc(image)
+                if self.image_mode == 'gray':
+                    image = np.stack([image]*3, axis=-1)
                 # if random.randint(0, 1):
                 #     image = flip_8_side(image)
 

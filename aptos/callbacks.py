@@ -16,7 +16,7 @@ from skimage.morphology import dilation, watershed, square, erosion, star, diamo
 from skimage.color import label2rgb
 from tensorflow.python.keras.callbacks import Callback
 from tensorflow.python import keras
-from sklearn.metrics import classification_report, precision_recall_fscore_support, cohen_kappa_score
+from sklearn.metrics import classification_report, precision_recall_fscore_support, cohen_kappa_score, f1_score
 
 from dsel import geo_io, colorize
 from aptos.tb_writers import TensorboardWriter
@@ -58,6 +58,13 @@ def mse_metric(y_true, y_pred, smooth=1e-3):
     return 1. - err
 
 
+def absdiff(y_true, pred):
+    y_true = np.array(y_true)
+    pred = np.array(pred)
+    diff = np.abs(y_true.astype(np.float32)-pred.astype(np.float32))
+    return np.mean(diff)
+
+
 class ModelCheckpoint(Callback):
     """ Save the model after every epoch. """
 
@@ -89,6 +96,8 @@ class ModelCheckpoint(Callback):
         if val_loss is not None:
             self.tb_writer.log_scalar(self.log_path, 'val_loss', [val_loss], self.epoch, str(self.k) + '_loss')
 
+
+
         accuracy = logs.get('accuracy')
         val_accuracy = logs.get('val_accuracy')
         if accuracy is not None:
@@ -108,8 +117,18 @@ class ModelCheckpoint(Callback):
             y_pred.append(np.argmax(self.model.predict(image)[0], axis=-1))
             y_true.append(int(row['diagnosis']))
 
+
+        diff = absdiff(y_pred, y_true)
+        self.tb_writer.log_scalar(self.log_path, 'diff', [diff], iteration, str(self.k))
+
+        f1 = f1_score(y_pred, y_true)
+        self.tb_writer.log_scalar(self.log_path, 'f1', [f1], iteration, str(self.k))
+
+
+
         ck = cohen_kappa_score(y_pred, y_true)
         self.tb_writer.log_scalar(self.log_path, 'kappa', [ck], iteration, str(self.k))
+
         if ck > self.best:
             print('\nIteration %05d: %s improved from %0.5f to %0.5f, saving model to %s'
                   % (iteration, 'iou', float(self.best), float(ck), self.save_path))

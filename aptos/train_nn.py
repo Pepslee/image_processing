@@ -36,7 +36,7 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
     data_frame = pd.read_csv(csv_path)
 
     callbacks_params = {'checkpoints_path': ckpts_path,
-                        'start_lr': 0.00005,
+                        'start_lr': 0.0001,
                         'image_dir': image_dir}
 
     callbacks_params['log_path'] = os.path.join(callbacks_params['checkpoints_path'], 'log')

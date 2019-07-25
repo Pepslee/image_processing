@@ -37,8 +37,8 @@ from tensorflow.python.keras.applications import imagenet_utils
 from tensorflow.python.keras.preprocessing.image import Iterator
 from tensorflow.python.keras import backend as K
 
-regularizer = tf.keras.regularizers.l2(0.01)
-# regularizer = None
+#regularizer = tf.keras.regularizers.l2(0.01)
+regularizer = None
 
 def conv_bn_relu(input, num_channel, kernel_size, stride, name, padding='same', bn_axis=-1, bn_momentum=0.99,
                  bn_scale=True, use_bias=True):
@@ -169,6 +169,7 @@ def model_(data_shape, label_shape, train_params):
 def model_keras(k):
     with tf.name_scope(str(k)):
         input_shape = (224, 224, 3)
+        # input_shape = None
         #img_input = Input(input_shape)
         channels = 5
         # img_input = Input(input_shape)
