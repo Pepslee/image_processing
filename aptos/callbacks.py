@@ -121,7 +121,7 @@ class ModelCheckpoint(Callback):
         diff = absdiff(y_pred, y_true)
         self.tb_writer.log_scalar(self.log_path, 'diff', [diff], iteration, str(self.k))
 
-        f1 = f1_score(to_categorical(y_pred), to_categorical(y_true))
+        f1 = f1_score(to_categorical(y_pred, 5), to_categorical(y_true, 5))
         self.tb_writer.log_scalar(self.log_path, 'f1', [f1], iteration, str(self.k))
 
 
