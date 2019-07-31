@@ -34,13 +34,18 @@ def flip_8_side(data):
 
 
 def preproc(image):
-    image = (image.astype(np.float32) - np.mean(image, axis=(0, 1))) / np.std(image, axis=(0, 1))
     image = cv2.resize(image, (224, 224))
+    image = (image.astype(np.float32) - np.mean(image, axis=(0, 1))) / np.std(image, axis=(0, 1))
     return image
 
 
 def sometimes(aug):
     return iaa.Sometimes(0.5, aug)
+
+
+def crop(image):
+    image_ = image[50:-50, 50:-50, ...]
+    return image_
 
 
 def augment():
@@ -120,6 +125,8 @@ class DataGenerator:
                                                     norm_type=cv2.NORM_MINMAX).astype(np.uint8)
                 # if self.phase == 'train':
                 #     image = seq.augment_image(image)
+                if self.phase == 'train':
+                    image = crop(image)
                 image = preproc(image)
                 if self.image_mode == 'gray':
                     image = np.stack([image]*3, axis=-1)
