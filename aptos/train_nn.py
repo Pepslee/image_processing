@@ -2,6 +2,11 @@ import argparse
 import os
 import shutil
 
+from numpy.random import seed
+seed(1)
+from tensorflow.python import set_random_seed
+set_random_seed(2)
+
 import cv2
 import numpy as np
 import pandas as pd
