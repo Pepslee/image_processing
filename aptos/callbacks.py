@@ -105,6 +105,7 @@ class TensorBoard(Callback):
 
   def __init__(self,
                log_dir='logs',
+               fold=0,
                histogram_freq=0,
                write_graph=True,
                write_images=False,
@@ -116,6 +117,7 @@ class TensorBoard(Callback):
     super(TensorBoard, self).__init__()
     self._validate_kwargs(kwargs)
 
+    self.fold = fold
     self.log_dir = log_dir
     self.histogram_freq = histogram_freq
     self.write_graph = write_graph
@@ -182,7 +184,7 @@ class TensorBoard(Callback):
     with context.eager_mode():
       self._close_writers()
       if self.write_graph:
-        with self._get_writer(self._train_run_name).as_default():
+        with self._get_writer(self._train_run_name, self.fold).as_default():
           with summary_ops_v2.always_record_summaries():
             if not model.run_eagerly:
               summary_ops_v2.graph(K.get_graph(), step=0)
@@ -245,7 +247,7 @@ class TensorBoard(Callback):
         writer.close()
       self._writers.clear()
 
-  def _get_writer(self, writer_name):
+  def _get_writer(self, writer_name, fold):
     """Get a summary writer for the given subdirectory under the logdir.
 
     A writer will be created if it does not yet exist.
@@ -259,7 +261,7 @@ class TensorBoard(Callback):
       A `SummaryWriter` object.
     """
     if writer_name not in self._writers:
-      path = os.path.join(self.log_dir, writer_name)
+      path = os.path.join(self.log_dir, str(fold), writer_name)
       writer = summary_ops_v2.create_file_writer_v2(path)
       self._writers[writer_name] = writer
     return self._writers[writer_name]
@@ -295,7 +297,7 @@ class TensorBoard(Callback):
   def on_epoch_end(self, epoch, logs=None):
     """Runs metrics and histogram summaries at epoch end."""
     step = epoch if self.update_freq == 'epoch' else self._samples_seen
-    self._log_metrics(logs, prefix='epoch_', step=step)
+    self._log_metrics(logs, prefix=f'epoch_', step=step)
 
     if self.histogram_freq and epoch % self.histogram_freq == 0:
       self._log_weights(epoch)
@@ -315,7 +317,7 @@ class TensorBoard(Callback):
 
   def _log_trace(self):
     if context.executing_eagerly():
-      with self._get_writer(self._train_run_name).as_default(), \
+      with self._get_writer(self._train_run_name, self.fold).as_default(), \
           summary_ops_v2.always_record_summaries():
         # TODO(b/126388999): Remove step info in the summary name.
         summary_ops_v2.trace_export(
@@ -362,14 +364,14 @@ class TensorBoard(Callback):
             # Don't create a "validation" events file if we don't
             # actually have any validation data.
             continue
-          writer = self._get_writer(writer_name)
+          writer = self._get_writer(writer_name, self.fold)
           with writer.as_default():
             for (name, value) in these_logs:
               summary_ops_v2.scalar(name, value, step=step)
 
   def _log_weights(self, epoch):
     """Logs the weights of the Model to TensorBoard."""
-    writer = self._get_writer(self._train_run_name)
+    writer = self._get_writer(self._train_run_name, self.fold)
     with context.eager_mode(), \
           writer.as_default(), \
           summary_ops_v2.always_record_summaries():
@@ -531,5 +533,5 @@ def callbacks(args):
 
     lr_callback = keras.callbacks.ReduceLROnPlateau(mode='min', min_delta=0.0001, cooldown=0, min_lr=args['start_lr'],
                                                     patience=3)
-    tb = keras.callbacks.TensorBoard(log_dir=args['log_path'])
+    tb = TensorBoard(log_dir=args['log_path'], fold=args['fold'])
     return [best_model, lr_callback, tb]
