@@ -56,41 +56,45 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
         shutil.rmtree(callbacks_params['log_path'])
         os.makedirs(callbacks_params['log_path'])
 
-    skf = StratifiedKFold(n_splits=4, shuffle=True, random_state=1)
-    for k, (train_ind, test_ind) in enumerate(skf.split(data_frame, data_frame['diagnosis'], )):
-        g = tf.Graph()
-        with g.as_default():
-            train_df = data_frame.iloc[train_ind]
-            test_df = data_frame.iloc[train_ind]
+    #skf = StratifiedKFold(n_splits=4, shuffle=True, random_state=1)
+    #for k, (train_ind, test_ind) in enumerate(skf.split(data_frame, data_frame['diagnosis'], )):
+    k = 0
+    g = tf.Graph()
+    with g.as_default():
+        #train_df = data_frame.iloc[train_ind]
+        #test_df = data_frame.iloc[train_ind]
 
-            train_generator = DataGenerator(train_df, image_dir, batch_size, 'train')
-            test_generator = DataGenerator(test_df, image_dir, batch_size, 'train')
+        train_df = pd.read_csv('../train.csv')
+        test_df = pd.read_csv('../trainLabels15.csv')
 
-            model = model_keras(k)
-            optimizer_type = optimizer('Adam', 0.00005)
+        train_generator = DataGenerator(train_df, image_dir, batch_size, 'train', '.png')
+        test_generator = DataGenerator(test_df, '../resized_train_15_1024_1024', batch_size, 'test', '.jpg')
 
-            model.compile(loss=loss, optimizer=optimizer_type, metrics=metrics)
-            model.summary()
+        model = model_keras(k)
+        optimizer_type = optimizer('Adam', 0.00005)
 
-            # add test_data and fold number to callbacks params dict
-            callbacks_params['test_df'] = test_df
-            callbacks_params['fold'] = k
+        model.compile(loss=loss, optimizer=optimizer_type, metrics=metrics)
+        model.summary()
 
-            callbacks_list = callbacks(callbacks_params)
+        # add test_data and fold number to callbacks params dict
+        callbacks_params['test_df'] = test_df
+        callbacks_params['fold'] = k
 
-            print('Start ...')
+        callbacks_list = callbacks(callbacks_params)
 
-            model.fit_generator(generator=iter(train_generator.generator()),
-                                # steps_per_epoch=10,
-                                steps_per_epoch=len(train_generator),
-                                epochs=50,
-                                validation_data=iter(test_generator.generator()),
-                                validation_steps=len(test_generator),
-                                # validation_steps=10,
-                                callbacks=callbacks_list,
-                                max_queue_size=1,
-                                verbose=1,
-                                workers=0)
+        print('Start ...')
+
+        model.fit_generator(generator=iter(train_generator.generator()),
+                            # steps_per_epoch=10,
+                            steps_per_epoch=len(train_generator),
+                            epochs=50,
+                            validation_data=iter(test_generator.generator()),
+                            validation_steps=len(test_generator),
+                            # validation_steps=10,
+                            callbacks=callbacks_list,
+                            max_queue_size=1,
+                            verbose=1,
+                            workers=0)
 
 
 if __name__ == '__main__':

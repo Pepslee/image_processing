@@ -17,9 +17,9 @@ def crop_image(img, mask, tol=0):
 
 def crop_by_mask(image):
     image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    hist = np.bincount(image_gray.flatten())
-    ind = np.argmax(hist)
-    thresh = ind + 10
+    # hist = np.bincount(image_gray.flatten())
+    # ind = np.argmax(hist)
+    thresh = 0
     thresh_image = (image_gray > thresh).astype(np.uint8) * 255
     if thresh < 25:
         thresh_image = crop_image(image, thresh_image, 0)
@@ -29,14 +29,21 @@ def crop_by_mask(image):
 
 
 def calc_stat(globs):
+    output_path = '/mnt/75b9aae6-291e-4314-90c2-b27cf3e3f5cd/Kaggle/aptos2019-blindness-detection/2015/resized_train_15_1024_1024'
+    already_list = os.listdir(output_path)
     shapes = list()
-    SIZE = 512
+    SIZE = 1024
     targets_frame = pd.DataFrame(columns=['name', 'r_mean', 'g_mean', 'b_mean', 'r_var', 'g_var', 'b_var', 'mean', 'var'])
     for image_path in tqdm(globs):
+        image_name = os.path.basename(image_path)
+        if image_name in already_list:
+            continue
         image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
         image = crop_by_mask(image)
 
         y_size, x_size = image.shape[:2]
+        if x_size == 0:
+            print(image_path)
         k = float(y_size) / x_size
         image = cv2.resize(image, (SIZE, int(k * SIZE)))
 
@@ -45,7 +52,7 @@ def calc_stat(globs):
         image_name = os.path.basename(image_path)
         # print(image_name)
         # thresh_image = cv2.resize(thresh_image, (1024, 1024))
-        cv2.imwrite(os.path.join('/mnt/75b9aae6-291e-4314-90c2-b27cf3e3f5cd/Kaggle/aptos2019-blindness-detection/test_image_512_512', image_name), image)
+        cv2.imwrite(os.path.join(output_path, image_name), image)
         # cv2.namedWindow('f', 0)
         # cv2.imshow('f', thresh_image)
         # cv2.namedWindow('image', 0)
@@ -91,8 +98,8 @@ def pad_or_crop_image(image, size):
 
 
 def main():
-    path = '/mnt/75b9aae6-291e-4314-90c2-b27cf3e3f5cd/Kaggle/aptos2019-blindness-detection/test_images'
-    globs = glob.glob(os.path.join(path, '*.png'))
+    path = '/mnt/75b9aae6-291e-4314-90c2-b27cf3e3f5cd/Kaggle/aptos2019-blindness-detection/2015/resized_train_15'
+    globs = glob.glob(os.path.join(path, '*.jpg'))
 
     # globs = ['/mnt/75b9aae6-291e-4314-90c2-b27cf3e3f5cd/Kaggle/aptos2019-blindness-detection/train_images/65dda202653d.png']
     shapes = calc_stat(globs)

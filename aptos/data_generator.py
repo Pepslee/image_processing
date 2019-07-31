@@ -98,7 +98,7 @@ def augment():
 
 
 class DataGenerator:
-    def __init__(self, data_table, image_dir, batch_size, phase):
+    def __init__(self, data_table, image_dir, batch_size, phase, ext):
         self.data_table = data_table
         self.df = shuffle(self.data_table)
         self.image_dir = image_dir
@@ -106,6 +106,7 @@ class DataGenerator:
         self.length = self.df.shape[0]
         self.phase = phase
         self.image_mode ='color'
+        self.ext = ext
 
     def generator(self):
         i = 0
@@ -116,7 +117,7 @@ class DataGenerator:
             y_batch = list()
             for b in range(self.batch_size):
                 ind = i % count
-                image_path = join(self.image_dir, self.df['id_code'].iloc[ind] + '.png')
+                image_path = join(self.image_dir, self.df['id_code'].iloc[ind] + self.ext)
                 image = cv2.imread(image_path, cv2.IMREAD_COLOR)
                 if self.image_mode == 'gray':
                     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
