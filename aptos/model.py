@@ -16,14 +16,9 @@ from tensorflow.python.keras.applications.mobilenet_v2 import MobileNetV2
 from tensorflow.python.keras.applications.nasnet import NASNetLarge
 from tensorflow.python.keras.applications.nasnet import NASNetMobile
 from tensorflow.python.keras.applications import ResNet50
-from tensorflow.python.keras.applications import ResNet101
-from tensorflow.python.keras.applications import ResNet152
 from tensorflow.python.keras.applications import ResNet50V2
-from tensorflow.python.keras.applications import ResNet101V2
-from tensorflow.python.keras.applications import ResNet152V2
-from tensorflow.python.keras.applications.vgg16 import VGG16
-from tensorflow.python.keras.applications.vgg19 import VGG19
-from tensorflow.python.keras.applications.xception import Xception
+
+
 
 import os
 import random
@@ -173,7 +168,7 @@ def model_keras(k):
         #img_input = Input(input_shape)
         channels = 5
         # img_input = Input(input_shape)
-        ret = ResNet152V2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+        ret = ResNet50V2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         # ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         #ret = VGG16(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         # ret = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet')
@@ -183,17 +178,17 @@ def model_keras(k):
 
         model = Sequential()
         model.add(ret)
-        model.add(layers.BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True,
-                                            beta_initializer='zeros', gamma_initializer='ones',
-                                            moving_mean_initializer='zeros',
-                                            moving_variance_initializer='ones', beta_regularizer=None,
-                                            gamma_regularizer=None,
-                                            beta_constraint=None, gamma_constraint=None))
+        # model.add(layers.BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True,
+        #                                     beta_initializer='zeros', gamma_initializer='ones',
+        #                                     moving_mean_initializer='zeros',
+        #                                     moving_variance_initializer='ones', beta_regularizer=None,
+        #                                     gamma_regularizer=None,
+        #                                     beta_constraint=None, gamma_constraint=None))
         model.add(layers.GlobalAveragePooling2D())
 
-        model.add(layers.Dropout(0.5))
-        model.add(layers.Dense(1024, activation='relu', kernel_regularizer=regularizer))
-        model.add(layers.Dropout(0.5))
+        # model.add(layers.Dropout(0.5))
+        # model.add(layers.Dense(32, activation='relu', kernel_regularizer=regularizer))
+        model.add(layers.Dropout(0.8))
         model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer))
 
     return model

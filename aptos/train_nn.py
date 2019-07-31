@@ -59,7 +59,7 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
             test_df = data_frame.iloc[train_ind]
 
             train_generator = DataGenerator(train_df, image_dir, batch_size, 'train')
-            test_generator = DataGenerator(test_df, image_dir, 1, 'test')
+            test_generator = DataGenerator(test_df, image_dir, batch_size, 'train')
 
             model = model_keras(k)
             optimizer_type = optimizer('Adam', 0.00005)

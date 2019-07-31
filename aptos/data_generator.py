@@ -109,7 +109,7 @@ class DataGenerator:
             y_batch = list()
             for b in range(self.batch_size):
                 ind = i % count
-                image_path = join(self.image_dir, self.df['id_code'].iloc[ind])
+                image_path = join(self.image_dir, self.df['id_code'].iloc[ind] + '.png')
                 image = cv2.imread(image_path, cv2.IMREAD_COLOR)
                 if self.image_mode == 'gray':
                     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -118,13 +118,13 @@ class DataGenerator:
                                 np.std(gray_image) + 0.001)
                     image = cv2.normalize(gray_image_norm, gray_image_norm, alpha=0, beta=255,
                                                     norm_type=cv2.NORM_MINMAX).astype(np.uint8)
-                if self.phase == 'train':
-                    image = seq.augment_image(image)
+                # if self.phase == 'train':
+                #     image = seq.augment_image(image)
                 image = preproc(image)
                 if self.image_mode == 'gray':
                     image = np.stack([image]*3, axis=-1)
-                # if random.randint(0, 1):
-                #     image = flip_8_side(image)
+                if random.randint(0, 1):
+                    image = flip_8_side(image)
 
                 diagnosis = self.df['diagnosis'].iloc[ind]
                 diagnosis = to_categorical(diagnosis, 5)

@@ -9,3 +9,4 @@ from tensorflow.python.ops import math_ops
 def loss(y_true, y_pred):
 
     return categorical_crossentropy(y_true, y_pred)*(1 - K.sum(y_true*y_pred, axis=-1))**2
+
