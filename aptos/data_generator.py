@@ -44,7 +44,9 @@ def sometimes(aug):
 
 
 def crop(image):
-    image_ = image[50:-50, 50:-50, ...]
+    crop_pad = 60
+    image_ = image[crop_pad:-crop_pad, crop_pad:-crop_pad, ...]
+
     return image_
 
 
