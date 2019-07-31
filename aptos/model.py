@@ -17,6 +17,7 @@ from tensorflow.python.keras.applications.nasnet import NASNetLarge
 from tensorflow.python.keras.applications.nasnet import NASNetMobile
 from tensorflow.python.keras.applications import ResNet50
 from tensorflow.python.keras.applications import ResNet50V2
+from tensorflow.python.keras.applications import VGG16
 
 
 
