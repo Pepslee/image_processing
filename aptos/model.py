@@ -169,8 +169,8 @@ def model_keras(k):
         #img_input = Input(input_shape)
         channels = 5
         # img_input = Input(input_shape)
-        ret = ResNet50V2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-        # ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+        # ret = ResNet50V2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+        ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         #ret = VGG16(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         # ret = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet')
         # for layer in ret.layers:
