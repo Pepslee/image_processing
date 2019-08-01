@@ -13,6 +13,79 @@ from tensorflow.python.keras.utils import to_categorical
 from imgaug import augmenters as iaa
 import imgaug as ia
 
+class Augmentations:
+    """ Augmentation functional set """
+
+    @staticmethod
+    def draw_hist(image):
+        """ Draw image histogram. """
+        bit_size = 2 ** (image.dtype.itemsize*8) - 1
+        from matplotlib import pyplot as plt
+        color = ('b', 'g', 'r')
+        for i, col in enumerate(color):
+            histr = cv2.calcHist([image], [i], None, [bit_size], [0, bit_size])
+            plt.plot(histr, color=col)
+            plt.xlim([0, bit_size])
+        plt.show()
+
+    @staticmethod
+    def brightness_change(result_img, brightness_range):
+        """ Changing brightness augmentation method. """
+        def inner_brightness_change(result_img, brightness_range):
+            k_brightness = random.uniform(brightness_range[0], brightness_range[1])
+            ret = (result_img.astype(np.uint32) * k_brightness)
+            ret = np.clip(ret, a_min=0, a_max=255).astype(result_img.dtype)
+            return ret
+        return inner_brightness_change(result_img, brightness_range)
+
+    @staticmethod
+    def hist_stretching(result_img, brightness_range):
+        """ Histogram stretching augmentation method."""
+        def inner_hist_stretching(result_img, stretching_range):
+            before_normalize_max = 2 ** (result_img.dtype.itemsize * 8) - 1
+            prc_min = before_normalize_max * stretching_range[0] / 100
+            prc_max = before_normalize_max * stretching_range[1] / 100
+            k_min = random.randint(0, prc_min)
+            k_max = random.randint(prc_max, before_normalize_max)
+            ret = cv2.normalize(result_img, result_img, k_min, k_max, cv2.NORM_MINMAX)
+            return ret
+        return inner_hist_stretching(result_img, brightness_range)
+
+    @staticmethod
+    def rgb2gray(img):
+        shape = img.shape
+        if len(shape) > 2:
+            channels = shape[-1]
+        else:
+            return img
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        ret = np.stack([gray]*channels, axis=-1)
+        return ret
+
+    def rgb_random_contrast(self, image):
+        shape = image.shape
+        if len(shape) > 2:
+            channels = shape[-1]
+        else:
+            return self.random_contrast(image)
+        bands = np.split(image, channels, axis=-1)
+        eq_bands = list()
+        for band in bands:
+            if random.randint(0, 2):
+                band = self.random_contrast(band)
+            band = np.squeeze(band)
+            eq_bands.append(band)
+        return np.stack(eq_bands, axis=-1)
+
+    @staticmethod
+    def random_contrast(img, scale_down=0.5, scale_up=1.5):
+        alpha = random.uniform(scale_down, scale_up)
+        gray = np.mean(img, axis=-1)
+        gray = (3.0 * (1.0 - alpha) / gray.size) * np.sum(gray)
+        ret = alpha * img + gray
+        ret = np.clip(ret, a_min=0, a_max=255).astype(img.dtype)
+        return ret
+
 
 def flip_8_side(data):
     switch = random.randint(0, 6)
@@ -50,51 +123,60 @@ def crop(image):
     return image_
 
 
-def augment():
-    # sometimes = lambda aug: iaa.Sometimes(0.5, aug)
-    seq = iaa.Sequential(
-        [
-            # apply the following augmenters to most images
-            iaa.Fliplr(0.5),  # horizontally flip 50% of all images
-            iaa.Flipud(0.2),  # vertically flip 20% of all images
-            sometimes(iaa.Affine(
-                scale=(0.7, 1.3),
-                # scale images to 80-120% of their size, individually per axis
-                rotate=(-10, 10),  # rotate by -45 to +45 degrees
-                shear=(-5, 5),  # shear by -16 to +16 degrees
-                order=[0, 1],  # use nearest neighbour or bilinear interpolation (fast)
-                cval=(0, 1),  # if mode is constant, use a cval between 0 and 255
-                mode='constant'  # use any of scikit-image's warping modes (see 2nd image from the top for examples)
-            )),
-            # execute 0 to 5 of the following (less important) augmenters per image
-            # don't execute all of them, as that would often be way too strong
-            iaa.SomeOf((0, 5),
-                       [
-                           iaa.OneOf([
-                               iaa.GaussianBlur((0, 1.0)),  # blur images with a sigma between 0 and 3.0
-                               iaa.AverageBlur(k=(3, 5)),
-                               # blur image using local means with kernel sizes between 2 and 7
-                               iaa.MedianBlur(k=(3, 5)),
-                               # blur image using local medians with kernel sizes between 2 and 7
-                           ]),
-                           iaa.SimplexNoiseAlpha(iaa.OneOf([
-                               iaa.EdgeDetect(alpha=(0.1, 0.2)),
-                           ])),
-                           iaa.Add((-3, 3), per_channel=0.5),
-                           # change brightness of images (by -10 to 10 of original value)
-                           # iaa.AddToHueAndSaturation((-1, 1)),  # change hue and saturation
-                           # either change the brightness of the whole image (sometimes
-                           # per channel) or change the brightness of subareas
-                           iaa.OneOf([
-                               iaa.Multiply((0.9, 1.1), per_channel=0.5)
-                           ]),
-                           # sometimes move parts of the image around
-                       ],
-                       random_order=True
-                       )
-        ],
-        random_order=True)
-    return seq
+def augment(crop_img):
+    """ Set of augmentation algorithms. It is a custom function, be attentive."""
+
+    augmentation = Augmentations()
+    is_brightness = 10
+    brightness_range = [0.8, 1.2]
+
+    is_stretching = 50
+    scale = 0.5
+
+    is_equalization = 10
+
+    adaptive_equalization = 10
+
+    if random.randint(0, 100) < is_equalization:
+        for i in range(crop_img.shape[-1]):
+            crop_img[:, :, i] = cv2.equalizeHist(crop_img[:, :, i])
+
+    if random.randint(0, 100) < adaptive_equalization:
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        for i in range(crop_img.shape[-1]):
+            crop_img[:, :, i] = clahe.apply(crop_img[:, :, i])
+
+    if random.randint(0, 100) < is_brightness:
+        crop_img = augmentation.brightness_change(crop_img, brightness_range)
+
+    if random.randint(0, 100) < 10:
+        crop_img = augmentation.rgb_random_contrast(crop_img)
+
+    # if is_fastai_augmentation:
+    #     crop_img = augmentation(crop_img)
+
+    if random.randint(0, 100) < 10:
+        crop_img = augmentation.random_contrast(crop_img)
+
+    if random.randint(0, 100) < 5:
+        crop_img = cv2.bitwise_not(crop_img)
+
+    if random.randint(0, 100) < 30:
+        crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGRA2RGBA)
+
+
+    if random.randint(0, 100) < 5:
+        data_ = cv2.cvtColor(crop_img, cv2.cv2.COLOR_BGRA2GRAY)
+        crop_img = np.stack([data_]*crop_img.shape[-1], axis=-1)
+
+
+    # cv2.namedWindow('crop_img', 0)
+    # cv2.namedWindow('crop_mask', 0)
+    # cv2.imshow('crop_img', crop_img)
+    # cv2.imshow('crop_mask', crop_mask*255)
+    # cv2.waitKey()
+
+    return crop_img
 
 
 class DataGenerator:
