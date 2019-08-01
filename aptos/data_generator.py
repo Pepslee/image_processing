@@ -126,6 +126,7 @@ def crop(image):
 def augment(crop_img):
     """ Set of augmentation algorithms. It is a custom function, be attentive."""
 
+    shape = crop_img.shape
     augmentation = Augmentations()
     is_brightness = 10
     brightness_range = [0.8, 1.2]
@@ -162,12 +163,11 @@ def augment(crop_img):
         crop_img = cv2.bitwise_not(crop_img)
 
     if random.randint(0, 100) < 30:
-        crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGRA2RGBA)
-
+        crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
 
     if random.randint(0, 100) < 10:
         data_ = cv2.cvtColor(crop_img, cv2.cv2.COLOR_BGRA2GRAY)
-        crop_img = np.stack([data_]*crop_img.shape[-1], axis=-1)
+        crop_img = np.stack([data_]*shape[-1], axis=-1)
 
     if random.randint(0, 100) < 5:
         crop_img = cv2.medianBlur(crop_img, 5)
