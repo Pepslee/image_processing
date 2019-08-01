@@ -148,7 +148,7 @@ class Augmentations:
         return np.stack(eq_bands, axis=-1)
 
     @staticmethod
-    def random_contrast(img, scale_down=0.8, scale_up=1.2):
+    def random_contrast(img, scale_down=0.9, scale_up=1.1):
         alpha = random.uniform(scale_down, scale_up)
         gray = np.mean(img, axis=-1)
         gray = (3.0 * (1.0 - alpha) / gray.size) * np.sum(gray)
@@ -177,7 +177,6 @@ def flip_8_side(data):
 
 
 def preproc(image):
-    image = rendering(image)
     image = crop(image)
     image = cv2.resize(image, (224, 224))
     # image = (image.astype(np.float32) - np.mean(image, axis=(0, 1))) / np.std(image, axis=(0, 1))
@@ -289,6 +288,8 @@ class DataGenerator:
                     crop_size = np.array(image.shape[:2]) - np.array(image.shape[:2])*0.15
                     crop_size = crop_size.astype(np.uint32)
                     image = self.rotate_image_and_crop(image, rot_angle, crop_size, cv2.INTER_CUBIC)
+                image = rendering(image)
+                image = augment(image)
                 image = preproc(image)
 
                 # if self.phase == 'train':
