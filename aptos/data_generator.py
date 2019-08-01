@@ -13,6 +13,76 @@ from tensorflow.python.keras.utils import to_categorical
 from imgaug import augmenters as iaa
 import imgaug as ia
 
+
+def calc_min_max(image, prc_min_k=2.0, prc_max=98.0, r_type='STD_DEV_K', nodata_value=None):
+    """
+    :param image: Image to process
+    :param prc_min_k: If r_type==CUM_CUT: Lower boundary in cumulative cut (in percents).
+ *              If r_type==STD_DEV_K: mean +/- standard deviation × prc_min_k
+    :param prc_max: Used when typeCalc==CUM_CUT: Upper boundary in cumulative cut (in percents).
+    :param r_type: Method to determine ranges to normalize to [0, 255].
+ *              MIN_MAX - global min/max;
+ *              STD_DEV_K - mean +/- standard deviation × k;
+ *              CUM_CUT - cumulative cut.
+    :param nodata_value: list equal to the number of channels
+    :return: numpy array image determines ranges [new_min, new_max], dtype uint8
+    """
+    if nodata_value is not None:
+        n_ch = 1
+        if len(image.shape) > 2:
+            n_ch = image.shape[2]
+        if len(nodata_value) > 1 and len(nodata_value) != n_ch:
+            raise RuntimeError('Nodata value length must match with num channels')
+        image_stat = image.astype(np.float32).copy()
+        image_stat[image_stat == np.array(nodata_value).astype(np.float32)] = np.nan
+    else:
+        image_stat = image
+    calc_min = np.array(0)
+    calc_max = np.array(0)
+    # calculation min max
+    if r_type == 'STD_DEV_K':
+        mean = np.nanmean(image_stat, axis=(0, 1))
+        # std = np.sqrt(np.mean((image - mean) ** 2, axis=(0, 1)))
+        std = np.nanstd(image_stat, axis=(0, 1))
+        calc_max = (mean + std * prc_min_k)
+        calc_min = (mean - std * prc_min_k)
+    image_dtype = image.dtype
+    if r_type == 'CUM_CUT':
+        calc_min, calc_max = np.nanpercentile(image_stat, [prc_min_k, prc_max], axis=(0, 1)).astype(image_dtype)
+    if not (image_dtype == np.float32 or image_dtype == np.float64
+            or image_dtype == np.int8 or image_dtype == np.int16
+            or image_dtype == np.int32):
+        calc_min = np.maximum(calc_min, 0).astype(image_dtype)
+        calc_max = np.minimum(calc_max, 2 ** (8 * image_dtype.itemsize) - 1).astype(image_dtype)
+    calc_dif = calc_max - calc_min
+    if calc_dif.any() == 0 and r_type != 'MIN_MAX':
+        r_type = 'MIN_MAX'
+        print('\x1b[0;31;40m' + 'WARNING: MIN_MAX operation performed!' + '\x1b[0m')
+    if r_type == 'MIN_MAX':
+        calc_min = np.nanmin(image_stat, axis=(0, 1))
+        calc_max = np.nanmax(image_stat, axis=(0, 1))
+    return calc_min, calc_max
+
+
+
+def rendering(image, prc_min_k=2.0, prc_max=98.0, r_type='STD_DEV_K', nodata_value=None):
+    """
+    :param image: Image to process
+    :param prc_min_k: If r_type==CUM_CUT: Lower boundary in cumulative cut (in percents).
+ *              If r_type==STD_DEV_K: mean +/- standard deviation × prc_min_k
+    :param prc_max: Used when typeCalc==CUM_CUT: Upper boundary in cumulative cut (in percents).
+    :param r_type: Method to determine ranges to normalize to [0, 255].
+ *              MIN_MAX - global min/max;
+ *              STD_DEV_K - mean +/- standard deviation × k;
+ *              CUM_CUT - cumulative cut.
+    :param nodata_value: list equal to the number of channels
+    :return: numpy array image determines ranges [new_min, new_max], dtype uint8
+    """
+    calc_min, calc_max = calc_min_max(image, prc_min_k, prc_max, r_type, nodata_value)
+    contrast_stretching = np.clip(image, calc_min, calc_max)
+    contrast_stretching = (contrast_stretching - calc_min) / (calc_max.astype(np.float32) - calc_min) * 255
+    return contrast_stretching.astype(np.uint8)
+
 class Augmentations:
     """ Augmentation functional set """
 
@@ -107,8 +177,11 @@ def flip_8_side(data):
 
 
 def preproc(image):
+    image = rendering(image)
+    image = crop(image)
     image = cv2.resize(image, (224, 224))
-    image = (image.astype(np.float32) - np.mean(image, axis=(0, 1))) / np.std(image, axis=(0, 1))
+    # image = (image.astype(np.float32) - np.mean(image, axis=(0, 1))) / np.std(image, axis=(0, 1))
+    image = (image.astype(np.float32) - 128) / 128.0
     return image
 
 
@@ -213,10 +286,10 @@ class DataGenerator:
                                           norm_type=cv2.NORM_MINMAX).astype(np.uint8)
                 # if self.phase == 'train':
                 #     image = seq.augment_image(image)
-                image = crop(image)
-                if self.phase == 'train':
-                    image = augment(image)
                 image = preproc(image)
+
+                # if self.phase == 'train':
+                #     image = augment(image)
                 if self.image_mode == 'gray':
                     image = np.stack([image]*3, axis=-1)
                 if random.randint(0, 1):
