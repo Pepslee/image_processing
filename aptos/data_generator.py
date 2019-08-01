@@ -289,7 +289,9 @@ class DataGenerator:
                     crop_size = crop_size.astype(np.uint32)
                     image = self.rotate_image_and_crop(image, rot_angle, crop_size, cv2.INTER_CUBIC)
                 image = rendering(image)
-                image = augment(image)
+
+                if random.randint(0, 100) < 70:
+                    image = augment(image)
                 image = preproc(image)
 
                 # if self.phase == 'train':
