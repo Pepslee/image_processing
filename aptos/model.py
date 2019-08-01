@@ -171,6 +171,7 @@ def model_keras(k):
         # img_input = Input(input_shape)
         # ret = ResNet50V2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+        ret.trainable = False
         #ret = VGG16(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         # ret = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet')
         # for layer in ret.layers:
@@ -184,13 +185,13 @@ def model_keras(k):
                                             moving_mean_initializer='zeros',
                                             moving_variance_initializer='ones', beta_regularizer=None,
                                             gamma_regularizer=None,
-                                            beta_constraint=None, gamma_constraint=None))
+                                            beta_constraint=None, gamma_constraint=None, trainable=True))
         model.add(layers.GlobalAveragePooling2D())
 
-        # model.add(layers.Dropout(0.5))
-        # model.add(layers.Dense(32, activation='relu', kernel_regularizer=regularizer))
+        model.add(layers.Dropout(0.5))
+        model.add(layers.Dense(32, activation='relu', kernel_regularizer=regularizer, trainable=True))
         model.add(layers.Dropout(0.8))
-        model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer))
+        model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer, trainable=True))
 
     return model
 
