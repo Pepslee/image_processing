@@ -208,13 +208,13 @@ class DataGenerator:
                     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
                     gray_image_norm = (gray_image.astype(np.float32) - np.mean(gray_image)) / (
-                                np.std(gray_image) + 0.001)
+                            np.std(gray_image) + 0.001)
                     image = cv2.normalize(gray_image_norm, gray_image_norm, alpha=0, beta=255,
-                                                    norm_type=cv2.NORM_MINMAX).astype(np.uint8)
+                                          norm_type=cv2.NORM_MINMAX).astype(np.uint8)
                 # if self.phase == 'train':
                 #     image = seq.augment_image(image)
+                image = crop(image)
                 if self.phase == 'train':
-                    image = crop(image)
                     image = augment(image)
                 image = preproc(image)
                 if self.image_mode == 'gray':
