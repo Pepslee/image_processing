@@ -158,16 +158,20 @@ def augment(crop_img):
     if random.randint(0, 100) < 10:
         crop_img = augmentation.random_contrast(crop_img)
 
-    if random.randint(0, 100) < 5:
+    if random.randint(0, 100) < 10:
         crop_img = cv2.bitwise_not(crop_img)
 
     if random.randint(0, 100) < 30:
         crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGRA2RGBA)
 
 
-    if random.randint(0, 100) < 5:
+    if random.randint(0, 100) < 10:
         data_ = cv2.cvtColor(crop_img, cv2.cv2.COLOR_BGRA2GRAY)
         crop_img = np.stack([data_]*crop_img.shape[-1], axis=-1)
+
+    if random.randint(0, 100) < 5:
+        crop_img = cv2.medianBlur(crop_img, 5)
+
 
 
     # cv2.namedWindow('crop_img', 0)
@@ -193,7 +197,6 @@ class DataGenerator:
     def generator(self):
         i = 0
         count = self.df.shape[0]
-        seq = augment()
         while(True):
             x_batch = list()
             y_batch = list()
@@ -212,6 +215,7 @@ class DataGenerator:
                 #     image = seq.augment_image(image)
                 if self.phase == 'train':
                     image = crop(image)
+                    image = augment(image)
                 image = preproc(image)
                 if self.image_mode == 'gray':
                     image = np.stack([image]*3, axis=-1)
