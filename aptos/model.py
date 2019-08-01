@@ -189,7 +189,7 @@ def model_keras(k):
 
         # model.add(layers.Dropout(0.5))
         # model.add(layers.Dense(32, activation='relu', kernel_regularizer=regularizer))
-        model.add(layers.Dropout(0.2))
+        model.add(layers.Dropout(0.8))
         model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer))
 
     return model
