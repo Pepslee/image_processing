@@ -155,7 +155,7 @@ def model_(data_shape, label_shape, train_params):
     x = Conv2D(channels, (1, 1), activation=None, kernel_regularizer=regularizer, name="mask")(conv5)
     x = mean(x, axis=[1, 2])
 
-    x_softmax = Activation('sigmoid')(x)
+    x_softmax = Activation('softmax')(x)
 
     ret = Model(img_input, x_softmax)
 
