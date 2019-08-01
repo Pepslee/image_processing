@@ -78,7 +78,7 @@ class Augmentations:
         return np.stack(eq_bands, axis=-1)
 
     @staticmethod
-    def random_contrast(img, scale_down=0.5, scale_up=1.5):
+    def random_contrast(img, scale_down=0.8, scale_up=1.2):
         alpha = random.uniform(scale_down, scale_up)
         gray = np.mean(img, axis=-1)
         gray = (3.0 * (1.0 - alpha) / gray.size) * np.sum(gray)
@@ -138,14 +138,14 @@ def augment(crop_img):
 
     adaptive_equalization = 10
 
-    if random.randint(0, 100) < is_equalization:
-        for i in range(crop_img.shape[-1]):
-            crop_img[:, :, i] = cv2.equalizeHist(crop_img[:, :, i])
-
-    if random.randint(0, 100) < adaptive_equalization:
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        for i in range(crop_img.shape[-1]):
-            crop_img[:, :, i] = clahe.apply(crop_img[:, :, i])
+    # if random.randint(0, 100) < is_equalization:
+    #     for i in range(crop_img.shape[-1]):
+    #         crop_img[:, :, i] = cv2.equalizeHist(crop_img[:, :, i])
+    #
+    # if random.randint(0, 100) < adaptive_equalization:
+    #     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    #     for i in range(crop_img.shape[-1]):
+    #         crop_img[:, :, i] = clahe.apply(crop_img[:, :, i])
 
     if random.randint(0, 100) < is_brightness:
         crop_img = augmentation.brightness_change(crop_img, brightness_range)
