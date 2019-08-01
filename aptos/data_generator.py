@@ -284,8 +284,11 @@ class DataGenerator:
                             np.std(gray_image) + 0.001)
                     image = cv2.normalize(gray_image_norm, gray_image_norm, alpha=0, beta=255,
                                           norm_type=cv2.NORM_MINMAX).astype(np.uint8)
-                # if self.phase == 'train':
-                #     image = seq.augment_image(image)
+                if self.phase == 'train':
+                    rot_angle = random.randint(1, 89)
+                    crop_size = np.array(image.shape[:2]) - np.array(image.shape[:2])*0.15
+                    crop_size = crop_size.astype(np.uint32)
+                    image = self.rotate_image_and_crop(image, rot_angle, crop_size, cv2.INTER_CUBIC)
                 image = preproc(image)
 
                 # if self.phase == 'train':
