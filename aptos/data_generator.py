@@ -179,6 +179,7 @@ def flip_8_side(data):
 def preproc(image):
     image = crop(image)
     image = cv2.resize(image, (224, 224))
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     # image = (image.astype(np.float32) - np.mean(image, axis=(0, 1))) / np.std(image, axis=(0, 1))
     image = (image.astype(np.float32) - 128) / 128.0
     return image
@@ -231,11 +232,11 @@ def augment(crop_img):
     if random.randint(0, 100) < 10:
         crop_img = augmentation.random_contrast(crop_img)
 
-    if random.randint(0, 100) < 10:
-        crop_img = cv2.bitwise_not(crop_img)
+    # if random.randint(0, 100) < 10:
+    #     crop_img = cv2.bitwise_not(crop_img)
 
-    if random.randint(0, 100) < 30:
-        crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
+    # if random.randint(0, 100) < 30:
+    #     crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
 
     if random.randint(0, 100) < 10:
         data_ = cv2.cvtColor(crop_img, cv2.cv2.COLOR_BGRA2GRAY)
@@ -288,6 +289,7 @@ class DataGenerator:
                     crop_size = np.array(image.shape[:2]) - np.array(image.shape[:2])*0.15
                     crop_size = crop_size.astype(np.uint32)
                     image = self.rotate_image_and_crop(image, rot_angle, crop_size, cv2.INTER_CUBIC)
+
                 image = rendering(image)
 
                 if random.randint(0, 100) < 70:
