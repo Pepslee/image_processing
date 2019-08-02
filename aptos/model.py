@@ -54,17 +54,17 @@ def model_keras(k):
 
         model = Sequential()
         model.add(ret)
+        model.add(layers.GlobalAveragePooling2D())
+
+        model.add(layers.Dropout(0.5))
+        model.add(layers.Dense(1024, activation='relu', kernel_regularizer=regularizer, trainable=True))
         model.add(layers.BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001, center=True, scale=True,
                                             beta_initializer='zeros', gamma_initializer='ones',
                                             moving_mean_initializer='zeros',
                                             moving_variance_initializer='ones', beta_regularizer=None,
                                             gamma_regularizer=None,
                                             beta_constraint=None, gamma_constraint=None, trainable=True))
-        model.add(layers.GlobalAveragePooling2D())
-
         model.add(layers.Dropout(0.5))
-        model.add(layers.Dense(1024, activation='relu', kernel_regularizer=regularizer, trainable=True))
-        model.add(layers.Dropout(0.8))
         model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer, trainable=True))
 
         for layer in model.layers:
