@@ -170,13 +170,13 @@ def model_keras(k):
         channels = 5
         # img_input = Input(input_shape)
         # ret = ResNet50V2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-        ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
+        # ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         # ret.trainable = False
         #ret = VGG16(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-        # ret = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet')
-        for layer in ret.layers:
-            if hasattr(layer, 'kernel_regularizer'):
-                layer.kernel_regularizer = regularizer
+        ret = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet')
+        # for layer in ret.layers:
+        #     if hasattr(layer, 'kernel_regularizer'):
+        #         layer.kernel_regularizer = regularizer
 
         model = Sequential()
         model.add(ret)
@@ -192,6 +192,12 @@ def model_keras(k):
         model.add(layers.Dense(32, activation='relu', kernel_regularizer=regularizer, trainable=True))
         model.add(layers.Dropout(0.8))
         model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer, trainable=True))
+
+        for layer in model.layers:
+            layer.trainable = False
+
+        for i in range(-5, 0):
+            model.layers[i].trainable = True
 
     return model
 
