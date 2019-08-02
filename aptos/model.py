@@ -171,12 +171,12 @@ def model_keras(k):
         # img_input = Input(input_shape)
         # ret = ResNet50V2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         ret = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
-        ret.trainable = False
+        # ret.trainable = False
         #ret = VGG16(input_shape=input_shape, include_top=False, weights='imagenet', classes=channels)
         # ret = DenseNet121(input_shape=input_shape, include_top=False, weights='imagenet')
-        # for layer in ret.layers:
-        #     if hasattr(layer, 'kernel_regularizer'):
-        #         layer.kernel_regularizer = regularizer
+        for layer in ret.layers:
+            if hasattr(layer, 'kernel_regularizer'):
+                layer.kernel_regularizer = regularizer
 
         model = Sequential()
         model.add(ret)
