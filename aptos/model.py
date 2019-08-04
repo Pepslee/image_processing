@@ -189,14 +189,14 @@ def model_keras(k):
         model.add(layers.GlobalAveragePooling2D())
 
         model.add(layers.Dropout(0.5))
-        model.add(layers.Dense(32, activation='relu', kernel_regularizer=regularizer, trainable=True))
+        model.add(layers.Dense(1024, activation='relu', kernel_regularizer=regularizer, trainable=True))
         model.add(layers.Dropout(0.8))
         model.add(layers.Dense(channels, activation='softmax', kernel_regularizer=regularizer, trainable=True))
 
         #for layer in model.layers:
         #    layer.trainable = False
 
-        for i in range(0, 5):
+        for i in range(0, 6):
             model.layers[i].trainable = True
 
     return model
