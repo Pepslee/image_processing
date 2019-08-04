@@ -148,7 +148,7 @@ class Augmentations:
         return np.stack(eq_bands, axis=-1)
 
     @staticmethod
-    def random_contrast(img, scale_down=0.9, scale_up=1.1):
+    def random_contrast(img, scale_down=0.8, scale_up=1.2):
         alpha = random.uniform(scale_down, scale_up)
         gray = np.mean(img, axis=-1)
         gray = (3.0 * (1.0 - alpha) / gray.size) * np.sum(gray)
@@ -232,11 +232,11 @@ def augment(crop_img):
     if random.randint(0, 100) < 10:
         crop_img = augmentation.random_contrast(crop_img)
 
-    # if random.randint(0, 100) < 10:
-    #     crop_img = cv2.bitwise_not(crop_img)
+    if random.randint(0, 100) < 10:
+        crop_img = cv2.bitwise_not(crop_img)
 
-    # if random.randint(0, 100) < 30:
-    #     crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
+    if random.randint(0, 100) < 30:
+        crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
 
     if random.randint(0, 100) < 10:
         data_ = cv2.cvtColor(crop_img, cv2.cv2.COLOR_BGRA2GRAY)

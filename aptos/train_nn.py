@@ -64,11 +64,11 @@ def main(csv_path, image_dir, ckpts_path, batch_size):
         #train_df = data_frame.iloc[train_ind]
         #test_df = data_frame.iloc[train_ind]
 
-        train_df = pd.read_csv('../train.csv')
-        test_df = pd.read_csv('../trainLabels15.csv')
+        test_df = pd.read_csv('../train.csv')
+        train_df = pd.read_csv('../trainLabels15.csv')
 
-        train_generator = DataGenerator(train_df, image_dir, batch_size, 'train', '.png')
-        test_generator = DataGenerator(test_df.loc[1:1000], '../resized_train_15_1024_1024', batch_size, 'test', '.jpg')
+        train_generator = DataGenerator(train_df.loc[1:1000], '../resized_train_15_1024_1024', batch_size, 'train', '.jpg')
+        test_generator = DataGenerator(test_df, image_dir, batch_size, 'test', '.png')
 
         model = model_keras(k)
         optimizer_type = optimizer('Adam', callbacks_params['start_lr'])
